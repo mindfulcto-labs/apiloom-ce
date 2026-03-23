@@ -1,0 +1,105 @@
+# GitHub Actions workflow for FlexGateway GitOps.
+#
+# Required repository configuration:
+#   Variables (Settings > Secrets and variables > Actions > Variables):
+#     - API_URL:  FlexGateway control plane URL (e.g., https://api.flexgateway.io)
+#     - ORG_ID:   Organization identifier
+#   Secrets (Settings > Secrets and variables > Actions > Secrets):
+#     - API_KEY:  FlexGateway API key with read/write permissions
+#
+# Two jobs:
+#   1. drift-check: runs on PRs that touch gateway config, posts a comment with drift results.
+#   2. apply: runs on pushes to main, applies the manifest with --auto-approve.
+
+name: FlexGateway GitOps
+
+on:
+  pull_request:
+    paths:
+      - 'infra/flexgateway/**'
+  push:
+    branches: [main]
+    paths:
+      - 'infra/flexgateway/**'
+
+env:
+  FLEXGATEWAY_API_URL: ${{ vars.API_URL }}
+  FLEXGATEWAY_API_KEY: ${{ secrets.API_KEY }}
+  MANIFEST_PATH: infra/flexgateway/gateway-config.yaml
+
+jobs:
+  # ----------------------------------------------------------------
+  # Drift check: runs on pull requests.
+  # Posts a comment showing what would change if the PR is merged.
+  # ----------------------------------------------------------------
+  drift-check:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Install fgctl
+        run: go install github.com/flexgateway/flexgateway/cmd/fgctl@latest
+
+      - name: Run drift detection
+        id: drift
+        run: |
+          set +e
+          fgctl drift --org ${{ vars.ORG_ID }} -f ${{ env.MANIFEST_PATH }} --json > drift-report.json
+          EXIT_CODE=$?
+          echo "exit_code=$EXIT_CODE" >> "$GITHUB_OUTPUT"
+          set -e
+
+      - name: Post drift report as PR comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const exitCode = parseInt('${{ steps.drift.outputs.exit_code }}');
+            let body;
+
+            if (exitCode === 2) {
+              body = '### FlexGateway Drift Check Failed\nCould not connect to the control plane. Check API_URL and API_KEY.';
+            } else if (exitCode === 1) {
+              const report = JSON.parse(fs.readFileSync('drift-report.json', 'utf8'));
+              const lines = report.entries.map(e => `- **${e.action}** ${e.kind} \`${e.name}\``);
+              body = `### FlexGateway Drift Detected\n\n${report.summary}\n\n${lines.join('\n')}`;
+            } else {
+              body = '### FlexGateway: No Drift\nConfiguration is in sync with live state.';
+            }
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+  # ----------------------------------------------------------------
+  # Apply: runs on push to main.
+  # Applies the manifest using fgctl plan --auto-approve.
+  # ----------------------------------------------------------------
+  apply:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+
+      - name: Install fgctl
+        run: go install github.com/flexgateway/flexgateway/cmd/fgctl@latest
+
+      - name: Apply configuration
+        run: |
+          echo "Applying FlexGateway configuration..."
+          fgctl plan --org ${{ vars.ORG_ID }} -f ${{ env.MANIFEST_PATH }} --auto-approve
+          echo "Configuration applied successfully."

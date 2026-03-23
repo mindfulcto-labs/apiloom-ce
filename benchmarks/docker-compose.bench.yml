@@ -1,0 +1,19 @@
+# Docker Compose override for benchmark environment.
+# Provides a mock backend (nginx returning static JSON) so benchmarks
+# do not depend on external services like httpbin.org.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f benchmarks/docker-compose.bench.yml up -d
+
+services:
+  mock-backend:
+    image: nginx:1.27-alpine
+    ports:
+      - "19090:80"
+    volumes:
+      - ./nginx-bench.conf:/etc/nginx/conf.d/default.conf:ro
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost/healthz"]
+      interval: 5s
+      timeout: 3s
+      retries: 3

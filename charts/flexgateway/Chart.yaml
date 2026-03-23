@@ -1,0 +1,9 @@
+apiVersion: v2
+name: flexgateway
+description: FlexGateway - Open-source API intelligence platform
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+maintainers:
+  - name: FlexGateway
+    url: https://github.com/flexgateway/flexgateway

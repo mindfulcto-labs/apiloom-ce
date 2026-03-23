@@ -1,0 +1,1346 @@
+openapi: 3.0.3
+info:
+  title: FlexGateway Control Plane API
+  description: |
+    REST API for managing FlexGateway resources including routes, backends,
+    consumers, API keys, AI models, and token budgets.
+  version: "1.0.0"
+  contact:
+    name: FlexGateway
+    url: https://flexgateway.io
+  license:
+    name: Apache 2.0
+    url: https://www.apache.org/licenses/LICENSE-2.0
+
+servers:
+  - url: /api/v1
+    description: Control plane API v1
+
+security:
+  - ApiKeyAuth: []
+  - BearerAuth: []
+
+tags:
+  - name: Routes
+    description: Gateway route management
+  - name: Backends
+    description: Backend service management
+  - name: Consumers
+    description: API consumer management
+  - name: API Keys
+    description: Consumer API key management
+  - name: AI Models
+    description: AI model registry
+  - name: Token Budgets
+    description: AI token budget management
+  - name: Status
+    description: Control plane health and status
+
+paths:
+  /status:
+    get:
+      operationId: getStatus
+      summary: Get control plane status
+      description: Returns health status, uptime, database connectivity, and resource counts.
+      tags: [Status]
+      security: []
+      responses:
+        "200":
+          description: Status response (always returns 200; unhealthy DB reflected in body)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusResponse"
+              example:
+                version: "1.0.0"
+                uptime_seconds: 3600.5
+                database:
+                  status: healthy
+                  latency_ms: 1.2
+                resources:
+                  routes: 12
+                  backends: 5
+                  consumers: 8
+
+  /routes:
+    post:
+      operationId: createRoute
+      summary: Create a new route
+      description: Creates a gateway route with the given configuration.
+      tags: [Routes]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRouteRequest"
+      responses:
+        "201":
+          description: Route created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    get:
+      operationId: listRoutes
+      summary: List all routes
+      description: Returns a paginated list of active routes.
+      tags: [Routes]
+      parameters:
+        - $ref: "#/components/parameters/CursorParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Paginated list of routes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /routes/{id}:
+    get:
+      operationId: getRoute
+      summary: Get a route by ID
+      description: Returns a single route by its UUID.
+      tags: [Routes]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Route found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    put:
+      operationId: updateRoute
+      summary: Update a route
+      description: Full replacement of route mutable fields. Bumps version.
+      tags: [Routes]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateRouteRequest"
+      responses:
+        "200":
+          description: Route updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RouteResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    delete:
+      operationId: deleteRoute
+      summary: Delete a route
+      description: Soft-deletes a route (sets is_active=false).
+      tags: [Routes]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Route deleted
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /backends:
+    post:
+      operationId: createBackend
+      summary: Create a new backend
+      description: Creates a backend service configuration.
+      tags: [Backends]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateBackendRequest"
+      responses:
+        "201":
+          description: Backend created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackendResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    get:
+      operationId: listBackends
+      summary: List all backends
+      description: Returns a paginated list of backends.
+      tags: [Backends]
+      parameters:
+        - $ref: "#/components/parameters/CursorParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Paginated list of backends
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackendListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /backends/{id}:
+    get:
+      operationId: getBackend
+      summary: Get a backend by ID
+      tags: [Backends]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Backend found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackendResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    put:
+      operationId: updateBackend
+      summary: Update a backend
+      description: Full replacement of backend mutable fields.
+      tags: [Backends]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateBackendRequest"
+      responses:
+        "200":
+          description: Backend updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BackendResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    delete:
+      operationId: deleteBackend
+      summary: Delete a backend
+      description: Hard-deletes a backend.
+      tags: [Backends]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Backend deleted
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /consumers:
+    post:
+      operationId: createConsumer
+      summary: Create a new consumer
+      description: Creates an API consumer that can be assigned API keys.
+      tags: [Consumers]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateConsumerRequest"
+      responses:
+        "201":
+          description: Consumer created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsumerResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    get:
+      operationId: listConsumers
+      summary: List all consumers
+      description: Returns a paginated list of active consumers.
+      tags: [Consumers]
+      parameters:
+        - $ref: "#/components/parameters/CursorParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Paginated list of consumers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsumerListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /consumers/{id}:
+    get:
+      operationId: getConsumer
+      summary: Get a consumer by ID
+      tags: [Consumers]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Consumer found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsumerResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    put:
+      operationId: updateConsumer
+      summary: Update a consumer
+      description: Full replacement of consumer mutable fields.
+      tags: [Consumers]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateConsumerRequest"
+      responses:
+        "200":
+          description: Consumer updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ConsumerResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    delete:
+      operationId: deleteConsumer
+      summary: Delete a consumer
+      description: Soft-deletes a consumer (sets is_active=false).
+      tags: [Consumers]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Consumer deleted
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /consumers/{id}/keys:
+    post:
+      operationId: createAPIKey
+      summary: Create an API key for a consumer
+      description: |
+        Generates a new API key for the specified consumer. The raw key value
+        is returned only once in the response and cannot be retrieved again.
+      tags: [API Keys]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "201":
+          description: API key created (raw key shown once)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIKeyCreateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    get:
+      operationId: listAPIKeys
+      summary: List API keys for a consumer
+      description: Returns a paginated list of API keys belonging to a consumer.
+      tags: [API Keys]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/CursorParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Paginated list of API keys
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIKeyListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /consumers/{id}/keys/{keyId}/rotate:
+    post:
+      operationId: rotateAPIKey
+      summary: Rotate an API key
+      description: |
+        Creates a new API key and deprecates the old one with a 1-hour grace period.
+        The old key remains valid during the grace period.
+      tags: [API Keys]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/KeyId"
+      responses:
+        "201":
+          description: New API key created (raw key shown once)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/APIKeyCreateResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /consumers/{id}/keys/{keyId}:
+    delete:
+      operationId: revokeAPIKey
+      summary: Revoke an API key
+      description: Immediately revokes an API key, making it unusable.
+      tags: [API Keys]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+        - $ref: "#/components/parameters/KeyId"
+      responses:
+        "204":
+          description: API key revoked
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /ai/models:
+    post:
+      operationId: createAIModel
+      summary: Create an AI model
+      description: Registers an AI model in the gateway model registry.
+      tags: [AI Models]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateAIModelRequest"
+      responses:
+        "201":
+          description: AI model created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIModelResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    get:
+      operationId: listAIModels
+      summary: List AI models
+      description: Returns a paginated list of active AI models.
+      tags: [AI Models]
+      parameters:
+        - $ref: "#/components/parameters/CursorParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Paginated list of AI models
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIModelListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /ai/models/{id}:
+    get:
+      operationId: getAIModel
+      summary: Get an AI model by ID
+      tags: [AI Models]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: AI model found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIModelResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    put:
+      operationId: updateAIModel
+      summary: Update an AI model
+      description: Full replacement of AI model mutable fields.
+      tags: [AI Models]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateAIModelRequest"
+      responses:
+        "200":
+          description: AI model updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AIModelResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    delete:
+      operationId: deleteAIModel
+      summary: Delete an AI model
+      description: Soft-deletes an AI model (sets is_active=false).
+      tags: [AI Models]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: AI model deleted
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /ai/budgets:
+    post:
+      operationId: createTokenBudget
+      summary: Create a token budget
+      description: Creates a token or cost budget for a consumer or team.
+      tags: [Token Budgets]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateTokenBudgetRequest"
+      responses:
+        "201":
+          description: Token budget created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenBudgetResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    get:
+      operationId: listTokenBudgets
+      summary: List token budgets
+      description: Returns a paginated list of token budgets.
+      tags: [Token Budgets]
+      parameters:
+        - $ref: "#/components/parameters/CursorParam"
+        - $ref: "#/components/parameters/LimitParam"
+      responses:
+        "200":
+          description: Paginated list of token budgets
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenBudgetListResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+  /ai/budgets/{id}:
+    get:
+      operationId: getTokenBudget
+      summary: Get a token budget by ID
+      tags: [Token Budgets]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "200":
+          description: Token budget found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenBudgetResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    put:
+      operationId: updateTokenBudget
+      summary: Update a token budget
+      description: Full replacement of token budget mutable fields.
+      tags: [Token Budgets]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTokenBudgetRequest"
+      responses:
+        "200":
+          description: Token budget updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TokenBudgetResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+    delete:
+      operationId: deleteTokenBudget
+      summary: Delete a token budget
+      description: Hard-deletes a token budget.
+      tags: [Token Budgets]
+      parameters:
+        - $ref: "#/components/parameters/ResourceId"
+      responses:
+        "204":
+          description: Token budget deleted
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalError"
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: API key for authentication
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT bearer token
+
+  parameters:
+    ResourceId:
+      name: id
+      in: path
+      required: true
+      description: Resource UUID
+      schema:
+        type: string
+        format: uuid
+        example: "550e8400-e29b-41d4-a716-446655440000"
+    KeyId:
+      name: keyId
+      in: path
+      required: true
+      description: API key UUID
+      schema:
+        type: string
+        format: uuid
+        example: "660e8400-e29b-41d4-a716-446655440000"
+    CursorParam:
+      name: cursor
+      in: query
+      required: false
+      description: Opaque pagination cursor from previous response
+      schema:
+        type: string
+    LimitParam:
+      name: limit
+      in: query
+      required: false
+      description: Maximum number of items to return (1-100, default 20)
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  schemas:
+    # --- Pagination ---
+    PagedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+        next_cursor:
+          type: string
+          description: Opaque cursor for the next page. Empty if no more pages.
+        has_more:
+          type: boolean
+          description: Whether more items exist beyond this page.
+      required: [data, has_more]
+
+    # --- Error ---
+    ProblemDetails:
+      type: object
+      description: RFC 7807 Problem Details error response
+      properties:
+        type:
+          type: string
+          description: Error type URN
+          example: "urn:flexgateway:error:not-found"
+        title:
+          type: string
+          description: Human-readable error title
+          example: "Resource Not Found"
+        status:
+          type: integer
+          description: HTTP status code
+          example: 404
+        detail:
+          type: string
+          description: Human-readable error detail
+          example: "Route with ID 550e8400-e29b-41d4-a716-446655440000 does not exist"
+      required: [type, title, status, detail]
+
+    # --- Status ---
+    StatusResponse:
+      type: object
+      properties:
+        version:
+          type: string
+          example: "1.0.0"
+        uptime_seconds:
+          type: number
+          format: double
+        database:
+          $ref: "#/components/schemas/DatabaseStatus"
+        resources:
+          $ref: "#/components/schemas/ResourceCounts"
+      required: [version, uptime_seconds, database, resources]
+
+    DatabaseStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+        latency_ms:
+          type: number
+          format: double
+      required: [status, latency_ms]
+
+    ResourceCounts:
+      type: object
+      properties:
+        routes:
+          type: integer
+          format: int64
+        backends:
+          type: integer
+          format: int64
+        consumers:
+          type: integer
+          format: int64
+      required: [routes, backends, consumers]
+
+    # --- Route ---
+    CreateRouteRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: "user-service"
+        config:
+          type: object
+          description: Route configuration (Lura-compatible)
+          example:
+            endpoint: "/api/users"
+            method: "GET"
+            backends: ["user-backend"]
+        metadata:
+          type: object
+          description: Arbitrary metadata
+          example:
+            team: "platform"
+      required: [name, config]
+
+    UpdateRouteRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        config:
+          type: object
+          description: Route configuration
+        metadata:
+          type: object
+      required: [name, config]
+
+    RouteResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        version:
+          type: integer
+          description: Auto-incremented version number
+        config:
+          type: object
+        metadata:
+          type: object
+        checksum:
+          type: string
+          description: SHA-256 checksum of config
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, name, version, config, checksum, is_active, created_at, updated_at]
+
+    RouteListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/RouteResponse"
+        next_cursor:
+          type: string
+        has_more:
+          type: boolean
+      required: [data, has_more]
+
+    # --- Backend ---
+    CreateBackendRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: "user-backend"
+        config:
+          type: object
+          description: Backend configuration
+          example:
+            url: "http://user-service:8080"
+            timeout: "30s"
+        metadata:
+          type: object
+      required: [name, config]
+
+    UpdateBackendRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        config:
+          type: object
+        metadata:
+          type: object
+      required: [name, config]
+
+    BackendResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        config:
+          type: object
+        metadata:
+          type: object
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, name, config, created_at, updated_at]
+
+    BackendListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/BackendResponse"
+        next_cursor:
+          type: string
+        has_more:
+          type: boolean
+      required: [data, has_more]
+
+    # --- Consumer ---
+    CreateConsumerRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+          example: "acme-corp"
+        metadata:
+          type: object
+          description: Arbitrary metadata (e.g., plan, team)
+          example:
+            plan: "enterprise"
+            team: "backend"
+      required: [name]
+
+    UpdateConsumerRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        metadata:
+          type: object
+      required: [name]
+
+    ConsumerResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        metadata:
+          type: object
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, name, is_active, created_at, updated_at]
+
+    ConsumerListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/ConsumerResponse"
+        next_cursor:
+          type: string
+        has_more:
+          type: boolean
+      required: [data, has_more]
+
+    # --- API Key ---
+    APIKeyResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        consumer_id:
+          type: string
+          format: uuid
+        key_prefix:
+          type: string
+          description: First 8 characters of the API key for identification
+          example: "flex_a1b2"
+        is_active:
+          type: boolean
+        deprecated_at:
+          type: string
+          format: date-time
+          description: Set during rotation; key valid until expiry
+        expires_at:
+          type: string
+          format: date-time
+        last_used_at:
+          type: string
+          format: date-time
+        rate_limit_override:
+          type: object
+          description: Per-key rate limit override
+        created_at:
+          type: string
+          format: date-time
+      required: [id, consumer_id, key_prefix, is_active, created_at]
+
+    APIKeyCreateResponse:
+      type: object
+      description: Returned when creating or rotating an API key. The raw key is shown only once.
+      properties:
+        key:
+          type: string
+          description: The raw API key value (shown only once)
+          example: "flex_a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4"
+        api_key:
+          $ref: "#/components/schemas/APIKeyResponse"
+      required: [key, api_key]
+
+    APIKeyListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/APIKeyResponse"
+        next_cursor:
+          type: string
+        has_more:
+          type: boolean
+      required: [data, has_more]
+
+    # --- AI Model ---
+    CreateAIModelRequest:
+      type: object
+      properties:
+        provider:
+          type: string
+          description: Provider identifier (e.g., openai, anthropic, google)
+          example: "openai"
+        model_name:
+          type: string
+          description: Model identifier at the provider
+          example: "gpt-4o"
+        display_name:
+          type: string
+          example: "GPT-4o"
+        input_price_per_token:
+          type: number
+          format: double
+          example: 0.000005
+        output_price_per_token:
+          type: number
+          format: double
+          example: 0.000015
+        capabilities:
+          type: array
+          items:
+            type: string
+          example: ["chat", "function_calling", "vision"]
+        weight:
+          type: integer
+          description: Load balancing weight (default 1)
+          example: 1
+      required: [provider, model_name]
+
+    UpdateAIModelRequest:
+      type: object
+      properties:
+        provider:
+          type: string
+        model_name:
+          type: string
+        display_name:
+          type: string
+        input_price_per_token:
+          type: number
+          format: double
+        output_price_per_token:
+          type: number
+          format: double
+        capabilities:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+        weight:
+          type: integer
+      required: [provider, model_name]
+
+    AIModelResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        provider:
+          type: string
+        model_name:
+          type: string
+        display_name:
+          type: string
+        input_price_per_token:
+          type: number
+          format: double
+        output_price_per_token:
+          type: number
+          format: double
+        capabilities:
+          type: array
+          items:
+            type: string
+        is_active:
+          type: boolean
+        weight:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, provider, model_name, is_active, weight, created_at, updated_at]
+
+    AIModelListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/AIModelResponse"
+        next_cursor:
+          type: string
+        has_more:
+          type: boolean
+      required: [data, has_more]
+
+    # --- Token Budget ---
+    CreateTokenBudgetRequest:
+      type: object
+      description: At least one of consumer_id or team must be provided.
+      properties:
+        consumer_id:
+          type: string
+          format: uuid
+        team:
+          type: string
+          example: "backend-team"
+        period:
+          type: string
+          enum: [hour, day, month]
+          example: "month"
+        max_tokens:
+          type: integer
+          format: int64
+          example: 1000000
+        max_cost_usd:
+          type: number
+          format: double
+          example: 100.00
+        enforcement:
+          type: string
+          enum: [hard, soft]
+          default: hard
+          description: Hard stops requests; soft logs warnings
+      required: [period]
+
+    UpdateTokenBudgetRequest:
+      type: object
+      properties:
+        consumer_id:
+          type: string
+          format: uuid
+        team:
+          type: string
+        period:
+          type: string
+          enum: [hour, day, month]
+        max_tokens:
+          type: integer
+          format: int64
+        max_cost_usd:
+          type: number
+          format: double
+        enforcement:
+          type: string
+          enum: [hard, soft]
+      required: [period]
+
+    TokenBudgetResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        consumer_id:
+          type: string
+          format: uuid
+        team:
+          type: string
+        period:
+          type: string
+          enum: [hour, day, month]
+        max_tokens:
+          type: integer
+          format: int64
+        max_cost_usd:
+          type: number
+          format: double
+        current_tokens:
+          type: integer
+          format: int64
+          description: Tokens used in current period
+        current_cost_usd:
+          type: number
+          format: double
+          description: Cost accrued in current period
+        period_start:
+          type: string
+          format: date-time
+        enforcement:
+          type: string
+          enum: [hard, soft]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required: [id, period, current_tokens, current_cost_usd, period_start, enforcement, created_at, updated_at]
+
+    TokenBudgetListResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items:
+            $ref: "#/components/schemas/TokenBudgetResponse"
+        next_cursor:
+          type: string
+        has_more:
+          type: boolean
+      required: [data, has_more]
+
+  responses:
+    BadRequest:
+      description: Invalid request (validation errors)
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: "urn:flexgateway:error:validation"
+            title: "Bad Request"
+            status: 400
+            detail: "name must be between 3 and 100 characters"
+    NotFound:
+      description: Resource not found
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: "urn:flexgateway:error:not-found"
+            title: "Not Found"
+            status: 404
+            detail: "resource not found"
+    Conflict:
+      description: Resource conflict (duplicate)
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: "urn:flexgateway:error:conflict"
+            title: "Conflict"
+            status: 409
+            detail: "resource already exists"
+    InternalError:
+      description: Internal server error
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/ProblemDetails"
+          example:
+            type: "urn:flexgateway:error:internal"
+            title: "Internal Server Error"
+            status: 500
+            detail: "internal server error"

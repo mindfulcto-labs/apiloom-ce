@@ -1,0 +1,55 @@
+syntax = "proto3";
+package flexgateway.plugin.v1;
+option go_package = "github.com/flexgateway/flexgateway/api/plugin/v1;pluginv1";
+
+service PluginService {
+  rpc OnRequest(PluginRequest) returns (PluginResponse);
+  rpc OnResponse(PluginRequest) returns (PluginResponse);
+  rpc Describe(DescribeRequest) returns (DescribeResponse);
+  rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+message PluginRequest {
+  string method = 1;
+  string path = 2;
+  map<string, StringList> headers = 3;
+  bytes body = 4;
+  map<string, string> metadata = 5;
+  int32 status_code = 6;
+  map<string, bytes> response_data = 7;
+}
+
+message StringList {
+  repeated string values = 1;
+}
+
+message PluginResponse {
+  Action action = 1;
+  map<string, StringList> headers = 2;
+  bytes body = 3;
+  int32 reject_status_code = 4;
+  string reject_type = 5;
+  string reject_title = 6;
+  string reject_detail = 7;
+  map<string, bytes> response_data = 8;
+}
+
+enum Action {
+  ACTION_UNSPECIFIED = 0;
+  ACTION_CONTINUE = 1;
+  ACTION_MODIFY = 2;
+  ACTION_REJECT = 3;
+}
+
+message DescribeRequest {}
+message DescribeResponse {
+  string name = 1;
+  string version = 2;
+  bytes config_schema = 3;
+}
+
+message HealthCheckRequest {}
+message HealthCheckResponse {
+  bool healthy = 1;
+  string message = 2;
+}

@@ -1,0 +1,45 @@
+{{- if .Values.backup.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ include "flexgateway.fullname" . }}-backup
+  labels:
+    {{- include "flexgateway.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.backup.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: backup
+              image: postgres:16-alpine
+              command: ["/bin/sh", "-c"]
+              args:
+                - |
+                  pg_dump --format=custom --compress=9 --no-acl --no-owner \
+                    "$DATABASE_URL" \
+                    --file="/backup/apiloom_$(date +%Y%m%d_%H%M%S).pgdump"
+                  find /backup -name "apiloom_*.pgdump" -mtime +{{ .Values.backup.retentionDays }} -delete
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: {{ include "flexgateway.fullname" . }}-postgres
+                      key: dsn
+              volumeMounts:
+                - name: backup-storage
+                  mountPath: /backup
+          volumes:
+            - name: backup-storage
+              {{- if .Values.backup.persistentVolume.enabled }}
+              persistentVolumeClaim:
+                claimName: {{ include "flexgateway.fullname" . }}-backup
+              {{- else }}
+              emptyDir: {}
+              {{- end }}
+{{- end }}

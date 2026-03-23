@@ -1,0 +1,134 @@
+replicaCount: 2
+
+image:
+  repository: flexgateway/flexgateway
+  tag: latest
+  pullPolicy: IfNotPresent
+
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+service:
+  type: ClusterIP
+  port: 8080
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+# PostgreSQL configuration
+postgresql:
+  # Use internal PostgreSQL StatefulSet
+  enabled: true
+  image: postgres:16-alpine
+  storage: 10Gi
+  auth:
+    database: flexgateway
+    username: flexgw
+    password: ""  # Must be set at install time
+  # Use external PostgreSQL instead of internal
+  external:
+    dsn: ""  # Set to use external Postgres (disables internal)
+
+# Gateway configuration
+gateway:
+  logLevel: info
+  shutdownTimeout: 30s
+  readTimeout: 30s
+  writeTimeout: 60s
+  idleTimeout: 120s
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Security context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  fsGroup: 65532
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  readOnlyRootFilesystem: true
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+
+# Topology spread and anti-affinity
+topologySpreadConstraints:
+  enabled: true
+  maxSkew: 1
+  topologyKey: kubernetes.io/hostname
+
+podAntiAffinity:
+  enabled: true
+
+nodeSelector: {}
+tolerations: []
+
+# Horizontal Pod Autoscaler
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 70
+  # targetMemoryUtilizationPercentage: 80  # Optional
+
+# Ingress
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+    # kubernetes.io/ingress.class: nginx
+    # cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: apiloom.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  #  - secretName: apiloom-tls
+  #    hosts:
+  #      - apiloom.example.com
+
+# Liveness and readiness probes
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 15
+  timeoutSeconds: 3
+  failureThreshold: 3
+
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 2
+  failureThreshold: 3
+
+# Automated Postgres backup
+backup:
+  enabled: false  # Enable in production
+  schedule: "0 2 * * *"  # Daily at 2am UTC
+  retentionDays: 7
+  persistentVolume:
+    enabled: false
+    storageClass: ""
+    size: 20Gi

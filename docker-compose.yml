@@ -1,0 +1,135 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: flexgateway
+      POSTGRES_USER: flexgw
+      POSTGRES_PASSWORD: flexgw_dev
+    ports:
+      - "15432:5432"
+    volumes:
+      - flexgw-pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flexgw -d flexgateway"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.105.0
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./deploy/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+      - "8889:8889"   # Prometheus scrape
+      - "55679:55679" # zPages (debug UI at http://localhost:55679)
+    deploy:
+      resources:
+        limits:
+          memory: 128m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  gateway:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: gateway
+    depends_on:
+      postgres:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    environment:
+      FLEXGW_DATABASE_URL: "postgres://flexgw:flexgw_dev@postgres:5432/flexgateway?sslmode=disable"
+      FLEXGW_LOG_LEVEL: "${FLEXGW_LOG_LEVEL:-debug}"
+      FLEXGW_OTEL_ENDPOINT: "http://otel-collector:4318"
+      FLEXGW_OTEL_SERVICE_NAME: "apiloom-gateway"
+    ports:
+      - "18080:8080"
+      - "18443:8443"
+    healthcheck:
+      test: ["CMD", "/flexgateway", "healthcheck"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  controlplane:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: controlplane
+    depends_on:
+      postgres:
+        condition: service_healthy
+      otel-collector:
+        condition: service_started
+    environment:
+      FLEXGW_DATABASE_URL: "postgres://flexgw:flexgw_dev@postgres:5432/flexgateway?sslmode=disable"
+      FLEXGW_LOG_LEVEL: "${FLEXGW_LOG_LEVEL:-debug}"
+      FLEXGW_OTEL_ENDPOINT: "http://otel-collector:4318"
+      FLEXGW_OTEL_SERVICE_NAME: "apiloom-controlplane"
+    ports:
+      - "18081:8081"
+    deploy:
+      resources:
+        limits:
+          memory: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  portal:
+    build:
+      context: ./web
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: "http://localhost:18081"
+        NEXT_PUBLIC_CONTROL_PLANE_URL: "http://localhost:18081"
+    depends_on:
+      controlplane:
+        condition: service_started
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: "http://localhost:18081"
+      NEXT_PUBLIC_CONTROL_PLANE_URL: "http://localhost:18081"
+    ports:
+      - "13000:3000"
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  flexgw-pgdata:

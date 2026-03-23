@@ -1,0 +1,120 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+
+      - name: Run tests
+        run: make test
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract version
+        id: version
+        run: echo "VERSION=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+
+      - name: Build and push gateway image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: gateway
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/gateway:${{ steps.version.outputs.VERSION }}
+            ghcr.io/${{ github.repository }}/gateway:latest
+          build-args: |
+            VERSION=${{ steps.version.outputs.VERSION }}
+            COMMIT=${{ github.sha }}
+
+      - name: Build and push controlplane image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          target: controlplane
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/controlplane:${{ steps.version.outputs.VERSION }}
+            ghcr.io/${{ github.repository }}/controlplane:latest
+          build-args: |
+            VERSION=${{ steps.version.outputs.VERSION }}
+            COMMIT=${{ github.sha }}
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign images
+        run: |
+          cosign sign --yes ghcr.io/${{ github.repository }}/gateway:${{ steps.version.outputs.VERSION }}
+          cosign sign --yes ghcr.io/${{ github.repository }}/controlplane:${{ steps.version.outputs.VERSION }}
+
+      - name: Install syft
+        uses: anchore/sbom-action/download-syft@v0
+
+      - name: Generate SBOM
+        run: |
+          syft ghcr.io/${{ github.repository }}/gateway:${{ steps.version.outputs.VERSION }} -o spdx-json > sbom-gateway.spdx.json
+          syft ghcr.io/${{ github.repository }}/controlplane:${{ steps.version.outputs.VERSION }} -o spdx-json > sbom-controlplane.spdx.json
+
+      - name: Build binaries
+        run: |
+          GOOS=linux GOARCH=amd64 make build && tar czf flexgateway-linux-amd64.tar.gz -C bin .
+          rm -rf bin/
+          GOOS=linux GOARCH=arm64 make build && tar czf flexgateway-linux-arm64.tar.gz -C bin .
+          rm -rf bin/
+          GOOS=darwin GOARCH=arm64 make build && tar czf flexgateway-darwin-arm64.tar.gz -C bin .
+
+      - name: Generate changelog
+        id: changelog
+        uses: orhun/git-cliff-action@v4
+        with:
+          config: cliff.toml
+          args: --current --strip header
+        env:
+          OUTPUT: CHANGELOG_CURRENT.md
+        continue-on-error: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: CHANGELOG_CURRENT.md
+          generate_release_notes: false
+          files: |
+            flexgateway-linux-amd64.tar.gz
+            flexgateway-linux-arm64.tar.gz
+            flexgateway-darwin-arm64.tar.gz
+            sbom-gateway.spdx.json
+            sbom-controlplane.spdx.json
+
+      - name: Package Helm chart
+        run: helm package charts/flexgateway --version ${{ steps.version.outputs.VERSION }}
+
+      - name: Push Helm chart to GHCR
+        run: helm push flexgateway-${{ steps.version.outputs.VERSION }}.tgz oci://ghcr.io/${{ github.repository }}/charts

@@ -1,0 +1,193 @@
+openapi: "3.0.3"
+info:
+  title: Payments API
+  description: Sample payments API simulating a fintech service
+  version: "2.0.0"
+servers:
+  - url: https://httpbin.org
+paths:
+  /payments:
+    post:
+      summary: Create a payment
+      operationId: createPayment
+      tags: [payments]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentRequest'
+      responses:
+        '201':
+          description: Payment created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+    get:
+      summary: List payments
+      operationId: listPayments
+      tags: [payments]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, completed, failed, refunded]
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 20
+      responses:
+        '200':
+          description: Payment list
+  /payments/{paymentId}:
+    get:
+      summary: Get payment details
+      operationId: getPayment
+      tags: [payments]
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Payment details
+        '404':
+          description: Not found
+  /payments/{paymentId}/refund:
+    post:
+      summary: Refund a payment
+      operationId: refundPayment
+      tags: [payments]
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: integer
+                  description: Refund amount in cents
+                reason:
+                  type: string
+      responses:
+        '200':
+          description: Refund processed
+  /accounts:
+    get:
+      summary: List accounts
+      operationId: listAccounts
+      tags: [accounts]
+      responses:
+        '200':
+          description: Account list
+    post:
+      summary: Create account
+      operationId: createAccount
+      tags: [accounts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Account'
+      responses:
+        '201':
+          description: Account created
+  /accounts/{accountId}/balance:
+    get:
+      summary: Get account balance
+      operationId: getBalance
+      tags: [accounts]
+      parameters:
+        - name: accountId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Balance info
+  /transfers:
+    post:
+      summary: Create transfer
+      operationId: createTransfer
+      tags: [transfers]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Transfer'
+      responses:
+        '201':
+          description: Transfer initiated
+components:
+  schemas:
+    PaymentRequest:
+      type: object
+      required: [amount, currency, source]
+      properties:
+        amount:
+          type: integer
+          description: Amount in cents
+        currency:
+          type: string
+          enum: [usd, eur, gbp]
+        source:
+          type: string
+        description:
+          type: string
+    Payment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        amount:
+          type: integer
+        currency:
+          type: string
+        status:
+          type: string
+          enum: [pending, completed, failed, refunded]
+        created_at:
+          type: string
+          format: date-time
+    Account:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        type:
+          type: string
+          enum: [checking, savings, business]
+    Transfer:
+      type: object
+      required: [from_account, to_account, amount]
+      properties:
+        from_account:
+          type: string
+        to_account:
+          type: string
+        amount:
+          type: integer
+        currency:
+          type: string

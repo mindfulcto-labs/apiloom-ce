@@ -1,0 +1,52 @@
+# FlexGateway declarative configuration manifest.
+# Commit this file to your GitOps repo and apply with:
+#   fgctl plan --org my-org -f gateway-config.yaml --auto-approve
+
+apiVersion: flexgateway/v1
+kind: GatewayConfig
+metadata:
+  organization: my-org
+spec:
+  # Routes define API endpoints and their backend targets.
+  routes:
+    - name: get-users
+      config:
+        endpoint: /users
+        method: GET
+        backend: users-api
+      metadata:
+        team: platform
+        tier: public
+
+    - name: create-order
+      config:
+        endpoint: /orders
+        method: POST
+        backend: orders-api
+      metadata:
+        team: commerce
+        tier: internal
+
+    - name: health-check
+      config:
+        endpoint: /health
+        method: GET
+        backend: users-api
+      metadata:
+        tier: system
+
+  # Backends define upstream service targets.
+  backends:
+    - name: users-api
+      config:
+        url: https://users.internal:8080
+        timeout: 5s
+      metadata:
+        service: users
+
+    - name: orders-api
+      config:
+        url: https://orders.internal:8080
+        timeout: 10s
+      metadata:
+        service: orders

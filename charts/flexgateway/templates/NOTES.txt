@@ -1,0 +1,17 @@
+FlexGateway has been deployed.
+
+1. Get the gateway URL:
+   export POD_NAME=$(kubectl get pods --namespace {{ .Release.Namespace }} -l "app.kubernetes.io/name={{ include "flexgateway.name" . }},app.kubernetes.io/instance={{ .Release.Name }}" -o jsonpath="{.items[0].metadata.name}")
+   kubectl --namespace {{ .Release.Namespace }} port-forward $POD_NAME 8080:8080
+
+2. Verify health:
+   curl -s http://localhost:8080/healthz | jq .
+   curl -s http://localhost:8080/readyz | jq .
+   curl -s http://localhost:8080/healthz/deep | jq .
+
+3. Check logs:
+   kubectl logs -f $POD_NAME --namespace {{ .Release.Namespace }}
+
+4. Add your first route via the control plane API or fgctl CLI.
+
+For more information, visit: https://github.com/flexgateway/flexgateway

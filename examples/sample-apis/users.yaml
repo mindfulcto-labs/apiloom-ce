@@ -1,0 +1,172 @@
+openapi: "3.0.3"
+info:
+  title: Users API
+  description: User management service
+  version: "1.0.0"
+servers:
+  - url: https://jsonplaceholder.typicode.com
+paths:
+  /users:
+    get:
+      summary: List all users
+      operationId: listUsers
+      tags: [users]
+      responses:
+        '200':
+          description: User list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+    post:
+      summary: Create user
+      operationId: createUser
+      tags: [users]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUser'
+      responses:
+        '201':
+          description: Created
+  /users/{id}:
+    get:
+      summary: Get user by ID
+      operationId: getUser
+      tags: [users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User details
+    put:
+      summary: Update user
+      operationId: updateUser
+      tags: [users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUser'
+      responses:
+        '200':
+          description: Updated
+    delete:
+      summary: Delete user
+      operationId: deleteUser
+      tags: [users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Deleted
+  /users/{id}/posts:
+    get:
+      summary: Get user's posts
+      operationId: getUserPosts
+      tags: [users]
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Post list
+  /posts:
+    get:
+      summary: List all posts
+      operationId: listPosts
+      tags: [posts]
+      parameters:
+        - name: userId
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Post list
+    post:
+      summary: Create post
+      operationId: createPost
+      tags: [posts]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePost'
+      responses:
+        '201':
+          description: Created
+  /comments:
+    get:
+      summary: List comments
+      operationId: listComments
+      tags: [comments]
+      parameters:
+        - name: postId
+          in: query
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Comment list
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        username:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+        website:
+          type: string
+    CreateUser:
+      type: object
+      required: [name, email]
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        username:
+          type: string
+    CreatePost:
+      type: object
+      required: [title, body, userId]
+      properties:
+        title:
+          type: string
+        body:
+          type: string
+        userId:
+          type: integer

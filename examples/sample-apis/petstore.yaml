@@ -1,0 +1,173 @@
+openapi: "3.0.3"
+info:
+  title: Pet Store API
+  description: Sample pet store API for testing FlexGateway
+  version: "1.0.0"
+  contact:
+    name: FlexGateway Team
+servers:
+  - url: https://petstore3.swagger.io/api/v3
+paths:
+  /pet:
+    post:
+      summary: Add a new pet
+      operationId: addPet
+      tags: [pet]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Pet'
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+  /pet/{petId}:
+    get:
+      summary: Find pet by ID
+      operationId: getPetById
+      tags: [pet]
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pet'
+        '404':
+          description: Pet not found
+    delete:
+      summary: Delete a pet
+      operationId: deletePet
+      tags: [pet]
+      parameters:
+        - name: petId
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Successful
+  /pet/findByStatus:
+    get:
+      summary: Find pets by status
+      operationId: findPetsByStatus
+      tags: [pet]
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [available, pending, sold]
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Pet'
+  /store/inventory:
+    get:
+      summary: Returns pet inventories
+      operationId: getInventory
+      tags: [store]
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: object
+                additionalProperties:
+                  type: integer
+  /store/order:
+    post:
+      summary: Place an order
+      operationId: placeOrder
+      tags: [store]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+      responses:
+        '200':
+          description: Successful
+  /user:
+    post:
+      summary: Create user
+      operationId: createUser
+      tags: [user]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Successful
+  /user/{username}:
+    get:
+      summary: Get user by name
+      operationId: getUserByName
+      tags: [user]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+components:
+  schemas:
+    Pet:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        status:
+          type: string
+          enum: [available, pending, sold]
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        petId:
+          type: integer
+        quantity:
+          type: integer
+        status:
+          type: string
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        username:
+          type: string
+        email:
+          type: string

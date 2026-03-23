@@ -1,0 +1,51 @@
+# ArgoCD Application for syncing FlexGateway CRDs from a Git repository.
+#
+# Prerequisites:
+#   1. FlexGateway CRDs installed in the cluster:
+#      kubectl apply -f internal/k8s/crds/
+#   2. ArgoCD installed and configured.
+#
+# Customize:
+#   - spec.source.repoURL: your Git repository URL
+#   - spec.source.path: directory containing FlexRoute/FlexConsumer/FlexPlugin manifests
+#   - spec.destination.namespace: target namespace for FlexGateway resources
+
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: flexgateway-config
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: flexgateway
+  annotations:
+    # Notifications (optional): get Slack alerts on sync failures.
+    notifications.argoproj.io/subscribe.on-sync-failed.slack: flexgateway-alerts
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/your-org/infra-config.git
+    targetRevision: main
+    path: flexgateway/manifests
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: flexgateway
+
+  syncPolicy:
+    # Automated sync: ArgoCD applies changes when it detects Git drift.
+    automated:
+      # selfHeal: revert manual changes made outside Git.
+      selfHeal: true
+      # prune: delete resources removed from the Git repo.
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ApplyOutOfSyncOnly=true
+
+    retry:
+      limit: 3
+      backoff:
+        duration: 10s
+        factor: 2
+        maxDuration: 3m

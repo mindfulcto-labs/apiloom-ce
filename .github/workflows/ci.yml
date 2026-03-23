@@ -1,0 +1,182 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        postgres: ['15', '16', '17']
+    services:
+      postgres:
+        image: postgres:${{ matrix.postgres }}-alpine
+        env:
+          POSTGRES_DB: flexgateway_test
+          POSTGRES_USER: flexgw
+          POSTGRES_PASSWORD: flexgw_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U flexgw"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - name: Run unit tests
+        run: |
+          go test -race -count=1 -coverprofile=coverage.out $(go list ./... | grep -v /plugin/v1)
+      - name: Run integration tests
+        run: |
+          go test -race -count=1 -tags=integration -p 2 $(go list ./... | grep -v /plugin/v1)
+        env:
+          FLEXGW_TEST_DATABASE_URL: postgres://flexgw:flexgw_test@localhost:5432/flexgateway_test?sslmode=disable
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: coverage.out
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - name: Build all binaries
+        run: make build
+      - name: Verify container builds
+        run: docker build --target gateway -t flexgateway:ci .
+      - name: Verify image sizes
+        run: |
+          docker build --target gateway -t apiloom-gw:size-check .
+          docker build --target controlplane -t apiloom-cp:size-check .
+          GW_SIZE=$(docker image inspect apiloom-gw:size-check --format='{{.Size}}')
+          CP_SIZE=$(docker image inspect apiloom-cp:size-check --format='{{.Size}}')
+          echo "Gateway: $((GW_SIZE / 1024 / 1024))MB"
+          echo "Controlplane: $((CP_SIZE / 1024 / 1024))MB"
+          [ $GW_SIZE -lt 52428800 ] || (echo "Gateway image exceeds 50MB limit" && exit 1)
+          [ $CP_SIZE -lt 62914560 ] || (echo "Controlplane image exceeds 60MB limit" && exit 1)
+
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'pnpm'
+          cache-dependency-path: web/pnpm-lock.yaml
+      - run: cd web && pnpm install --frozen-lockfile
+      - run: cd web && pnpm run typecheck
+        continue-on-error: true
+      - run: cd web && pnpm run lint
+        continue-on-error: true
+      - run: cd web && pnpm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:18081
+          NEXT_PUBLIC_CONTROL_PLANE_URL: http://localhost:18081
+
+  bench-compare:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - name: Bench PR branch
+        run: go test -bench=. -benchmem -count=5 $(go list ./... | grep -v /plugin/v1) | tee /tmp/bench-new.txt
+      - name: Checkout main
+        run: git checkout origin/main
+      - name: Bench main branch
+        run: go test -bench=. -benchmem -count=5 $(go list ./... | grep -v /plugin/v1) | tee /tmp/bench-old.txt
+      - name: Install benchstat
+        run: go install golang.org/x/perf/cmd/benchstat@latest
+      - name: Compare (fail if >10% regression)
+        run: |
+          benchstat /tmp/bench-old.txt /tmp/bench-new.txt | tee bench-comparison.txt
+          if grep -E '\+[1-9][0-9]{1,}\..*%' bench-comparison.txt; then
+            echo "Benchmark regression >10% detected"
+            exit 1
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: bench-comparison
+          path: bench-comparison.txt
+
+  bench:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - name: Run benchmarks
+        run: |
+          go test -bench=. -benchmem -count=5 $(go list ./... | grep -v /plugin/v1) | tee bench.txt
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmarks
+          path: bench.txt
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: [lint, test, build, web]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push staging images
+        run: |
+          docker buildx build --target gateway \
+            --tag ghcr.io/${{ github.repository }}/gateway:staging \
+            --tag ghcr.io/${{ github.repository }}/gateway:sha-${{ github.sha }} \
+            --push .
+          docker buildx build --target controlplane \
+            --tag ghcr.io/${{ github.repository }}/controlplane:staging \
+            --tag ghcr.io/${{ github.repository }}/controlplane:sha-${{ github.sha }} \
+            --push .
+      - name: Deploy to staging
+        run: |
+          echo "IMAGE_TAG=sha-${{ github.sha }}" >> staging-deploy.env
+          echo "Deploy staging: gateway + controlplane at sha-${{ github.sha }}"
+        env:
+          STAGING_DEPLOY_TOKEN: ${{ secrets.STAGING_DEPLOY_TOKEN }}

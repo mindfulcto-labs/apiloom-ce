@@ -148,7 +148,7 @@ benchmarks/          Performance benchmarks
 
 ## Enterprise Features
 
-For advanced capabilities like API intelligence graphs, compliance dashboards (SOC 2, GDPR, HIPAA), self-healing pipelines, golden path templates, marketplace, SSO/SCIM, and multi-cluster federation, see [Apiloom Platform](https://github.com/cto-venkat/apiloom-ent).
+For advanced capabilities like API intelligence graphs, compliance dashboards (SOC 2, GDPR, HIPAA), self-healing pipelines, golden path templates, marketplace, SSO/SCIM, and multi-cluster federation, see [Apiloom Platform](https://apiloom.io) or [request a demo](https://apiloom.io/demo.html).
 
 ## Contributing
 

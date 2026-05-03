@@ -13,7 +13,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.26'
       - uses: golangci/golangci-lint-action@v6
         with:
           version: latest
@@ -41,7 +41,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.26'
       - name: Run unit tests
         run: |
           go test -race -count=1 -coverprofile=coverage.out $(go list ./... | grep -v /plugin/v1)
@@ -61,7 +61,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.26'
       - name: Build all binaries
         run: make build
       - name: Verify container builds
@@ -99,6 +99,45 @@ jobs:
           NEXT_PUBLIC_API_URL: http://localhost:18081
           NEXT_PUBLIC_CONTROL_PLANE_URL: http://localhost:18081
 
+  examples-plugins:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+      - name: Build example plugins
+        run: |
+          go build ./examples/plugins/webhook/...
+          go build ./examples/plugins/custom-auth/...
+          go build ./examples/plugins/response-transform/...
+      - name: Test example plugins
+        run: |
+          go test ./examples/plugins/webhook/...
+          go test ./examples/plugins/custom-auth/...
+          go test ./examples/plugins/response-transform/...
+
+  compose-smoke:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Start stack
+        run: docker compose up -d --wait --wait-timeout 120
+        timeout-minutes: 8
+      - name: Controlplane health check
+        run: |
+          curl -sf --retry 10 --retry-delay 3 --retry-connrefused \
+            http://localhost:18081/healthz
+      - name: Collect logs on failure
+        if: failure()
+        run: docker compose logs --tail=100
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
+
   # --- Security Gates ---
   # All five gates below block merges on failure via branch protection required checks.
 
@@ -111,7 +150,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.26'
       - name: Install gosec
         run: go install github.com/securego/gosec/v2/cmd/gosec@latest
       - name: Run gosec
@@ -160,7 +199,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.26'
       - name: Install go-licenses
         run: go install github.com/google/go-licenses@latest
       - name: Check licenses
@@ -191,7 +230,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.26'
       - name: Bench PR branch
         run: go test -bench=. -benchmem -count=5 $(go list ./... | grep -v /plugin/v1) | tee /tmp/bench-new.txt
       - name: Checkout main
@@ -219,7 +258,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.26'
       - name: Run benchmarks
         run: |
           go test -bench=. -benchmem -count=5 $(go list ./... | grep -v /plugin/v1) | tee bench.txt
@@ -238,7 +277,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.26'
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
       - name: Login to GHCR

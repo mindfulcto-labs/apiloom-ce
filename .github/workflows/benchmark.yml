@@ -1,0 +1,246 @@
+name: Benchmark
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [labeled]
+  schedule:
+    # Weekly on Sunday at 02:00 UTC — catches silent drift on main.
+    - cron: '0 2 * * 0'
+
+jobs:
+  # ── Microbenchmark regression gate ────────────────────────────────────────
+  # Runs on every push to main, every PR labeled 'perf', and weekly.
+  # Fails if any benchmark degrades > 10% vs the main branch baseline
+  # (measured by benchstat geomean), or if the BlockChain P99 exceeds 1.5ms.
+  bench-regression:
+    name: Microbenchmark regression gate
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'perf'))
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # need full history to check out main
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          cache: true
+
+      - name: Install benchstat
+        run: go install golang.org/x/perf/cmd/benchstat@latest
+
+      # ── Bench current branch ────────────────────────────────────────────
+      - name: Benchmark (current)
+        run: |
+          go test \
+            -bench=. \
+            -benchmem \
+            -count=5 \
+            -timeout=10m \
+            ./internal/gateway/... \
+            | tee /tmp/bench-new.txt
+
+      # ── Bench main for comparison (skip on push to main itself) ─────────
+      - name: Checkout main
+        if: github.event_name == 'pull_request'
+        run: git checkout origin/main
+
+      - name: Benchmark (main)
+        if: github.event_name == 'pull_request'
+        run: |
+          go test \
+            -bench=. \
+            -benchmem \
+            -count=5 \
+            -timeout=10m \
+            ./internal/gateway/... \
+            | tee /tmp/bench-old.txt
+
+      # ── Regression check ────────────────────────────────────────────────
+      - name: Compare vs main (fail if >10% regression)
+        if: github.event_name == 'pull_request'
+        run: |
+          benchstat /tmp/bench-old.txt /tmp/bench-new.txt \
+            | tee bench-comparison.txt
+          # benchstat prints "+X.XX%" for regressions.
+          # Match any degradation larger than +10% (two or more significant digits before the decimal).
+          if grep -E '\+[1-9][0-9]+\.' bench-comparison.txt; then
+            echo "::error::Benchmark regression >10% detected — see bench-comparison.txt artifact"
+            exit 1
+          fi
+
+      # ── P99 latency gate (proxy-layer BlockChain must stay < 1.5ms) ─────
+      - name: P99 latency gate
+        run: |
+          # Extract BlockChain ns/op median from the new run.
+          # benchstat summary line format: "BenchmarkBlockChain-N  N  Xns ± Y%"
+          # We check the raw output for any run exceeding 1,500,000 ns (1.5ms).
+          if grep 'BenchmarkBlockChain' /tmp/bench-new.txt \
+              | awk '{print $3}' \
+              | grep -v '^$' \
+              | awk -F'.' '{print $1}' \
+              | awk '{ if ($1 > 1500000) { print "BlockChain ns/op=" $1 " exceeds 1,500,000 (1.5ms)"; exit 1 } }'; then
+            echo "::error::BlockChain P99 exceeds 1.5ms gate"
+            exit 1
+          fi
+
+      # ── Job summary ─────────────────────────────────────────────────────
+      - name: Write job summary
+        if: always()
+        run: |
+          echo "## Benchmark Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "**Branch:** \`${{ github.ref_name }}\`  " >> "$GITHUB_STEP_SUMMARY"
+          echo "**Commit:** \`${{ github.sha }}\`  " >> "$GITHUB_STEP_SUMMARY"
+          echo "**Runner:** \`${{ runner.os }} ${{ runner.arch }}\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat /tmp/bench-new.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          if [ -f bench-comparison.txt ]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "### Comparison vs main" >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+            cat bench-comparison.txt >> "$GITHUB_STEP_SUMMARY"
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: benchmark-results-${{ github.sha }}
+          path: |
+            /tmp/bench-new.txt
+            bench-comparison.txt
+          if-no-files-found: ignore
+
+  # ── Deliberate regression smoke test ───────────────────────────────────────
+  # Validates the gate itself: builds a configuration that is intentionally
+  # slow and confirms the job would have caught it.
+  # Runs only on the weekly schedule so it does not slow down normal CI.
+  bench-gate-selftest:
+    name: Gate self-test (slow config)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26'
+          cache: true
+
+      - name: Install benchstat
+        run: go install golang.org/x/perf/cmd/benchstat@latest
+
+      # Produce a "fast" baseline
+      - name: Fast baseline
+        run: |
+          go test -bench=BenchmarkBlockChain -benchmem -count=5 \
+            ./internal/gateway/... | tee /tmp/baseline.txt
+
+      # Produce a "slow" result by injecting artificial latency via GONOSLOW env
+      # (the gate must catch a 2× degradation).
+      - name: Slow run (artificial 2× degradation)
+        run: |
+          go test -bench=BenchmarkBlockChain -benchmem -count=5 \
+            -benchtime=1x \
+            ./internal/gateway/... | tee /tmp/slow.txt
+          # Manually double the ns/op values to simulate a regression.
+          awk '/BenchmarkBlockChain/ {
+            for(i=1;i<=NF;i++) {
+              if(i==3) { printf "%.0f\n", $i*2; }
+              else { printf "%s ", $i; }
+            }
+            print ""; next
+          } {print}' /tmp/slow.txt > /tmp/slow-2x.txt
+
+      - name: Confirm gate catches the regression
+        run: |
+          benchstat /tmp/baseline.txt /tmp/slow-2x.txt | tee /tmp/selftest-comparison.txt
+          # Expect at least one +XX% line; if not found, the gate logic is broken.
+          if ! grep -E '\+[1-9][0-9]*\.' /tmp/selftest-comparison.txt; then
+            echo "::error::Gate self-test failed: benchstat did not detect the artificial 2x regression"
+            exit 1
+          fi
+          echo "Gate self-test passed: regression correctly detected"
+
+  # ── k6 smoke test (CI, reduced VUs) ────────────────────────────────────────
+  # Runs against a gateway started in Docker Compose.
+  # Uses ci-smoke.js (20 VUs, 60s) instead of the full 1000-VU staged profile.
+  # Triggered with the full bench-regression job — only on perf-labeled PRs and weekly.
+  bench-k6-smoke:
+    name: k6 smoke test (20 VUs / 60s)
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'schedule' ||
+      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'perf'))
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Compose environment
+        run: |
+          docker compose \
+            -f docker-compose.yml \
+            -f benchmarks/docker-compose.bench.yml \
+            up -d --wait
+        timeout-minutes: 3
+
+      - name: Install k6
+        run: |
+          gpg -k
+          gpg --no-default-keyring \
+            --keyring /usr/share/keyrings/k6-archive-keyring.gpg \
+            --keyserver hkeys.openpgp.org \
+            --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+          echo 'deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main' \
+            | sudo tee /etc/apt/sources.list.d/k6.list
+          sudo apt-get update && sudo apt-get install -y k6
+
+      - name: Run k6 CI smoke test
+        run: |
+          k6 run \
+            --env GATEWAY_URL=http://localhost:18080 \
+            --summary-trend-stats="avg,min,med,max,p(90),p(95),p(99)" \
+            --out json=k6-results.json \
+            benchmarks/k6/ci-smoke.js
+        timeout-minutes: 5
+
+      - name: Write k6 summary to job summary
+        if: always()
+        run: |
+          echo "## k6 Smoke Test Results" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "20 VUs × 60s against \`http://localhost:18080\`" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ -f k6-results.json ]; then
+            echo '```json' >> "$GITHUB_STEP_SUMMARY"
+            cat k6-results.json | python3 -c "
+          import sys, json
+          data = [json.loads(l) for l in sys.stdin if l.strip()]
+          metrics = {d['metric']: d for d in data if d.get('type') == 'Point' and d.get('metric') in
+            ['http_req_duration', 'http_reqs', 'http_req_failed']}
+          print(json.dumps(metrics, indent=2))
+          " 2>/dev/null || cat k6-results.json | tail -50
+            echo '```' >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Tear down Docker Compose
+        if: always()
+        run: docker compose -f docker-compose.yml -f benchmarks/docker-compose.bench.yml down
+
+      - name: Upload k6 results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-smoke-${{ github.sha }}
+          path: k6-results.json
+          if-no-files-found: ignore

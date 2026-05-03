@@ -99,6 +99,89 @@ jobs:
           NEXT_PUBLIC_API_URL: http://localhost:18081
           NEXT_PUBLIC_CONTROL_PLANE_URL: http://localhost:18081
 
+  # --- Security Gates ---
+  # All five gates below block merges on failure via branch protection required checks.
+
+  sast-gosec:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - name: Install gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+      - name: Run gosec
+        run: gosec -fmt sarif -out gosec.sarif ./...
+      - name: Upload SARIF to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: gosec.sarif
+          category: gosec
+
+  codeql:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: go
+          queries: security-and-quality
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: codeql-go
+
+  secrets-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  license-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - name: Install go-licenses
+        run: go install github.com/google/go-licenses@latest
+      - name: Check licenses
+        run: |
+          go-licenses check ./... \
+            --allowed_licenses=Apache-2.0,MIT,BSD-2-Clause,BSD-3-Clause,ISC,MPL-2.0,0BSD,Unlicense
+
+  dependency-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+
+  # --- Benchmarks ---
+
   bench-compare:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
@@ -148,7 +231,7 @@ jobs:
 
   deploy-staging:
     runs-on: ubuntu-latest
-    needs: [lint, test, build, web]
+    needs: [lint, test, build, web, sast-gosec, codeql, secrets-scan, license-check]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     environment: staging
     steps:

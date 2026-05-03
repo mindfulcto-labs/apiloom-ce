@@ -4,6 +4,10 @@ High-performance, open-source API gateway built in Go. Route, authenticate, rate
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![Go](https://img.shields.io/badge/Go-1.26+-00ADD8.svg)](https://go.dev)
+[![CI](https://github.com/cto-venkat/apiloom-ce/actions/workflows/ci.yml/badge.svg)](https://github.com/cto-venkat/apiloom-ce/actions/workflows/ci.yml)
+[![Security Scan](https://github.com/cto-venkat/apiloom-ce/actions/workflows/security.yml/badge.svg)](https://github.com/cto-venkat/apiloom-ce/actions/workflows/security.yml)
+[![SLSA](https://slsa.dev/images/gh-badge-level1.svg)](https://slsa.dev)
+[![Signed with Cosign](https://img.shields.io/badge/signed-cosign-blue?logo=sigstore)](https://docs.sigstore.dev/cosign/overview/)
 
 ## What is Apiloom Gateway CE?
 

@@ -1,6 +1,41 @@
-# FlexGateway Benchmarks
+# Apiloom Gateway CE — Benchmarks
 
-Reproducible performance testing infrastructure for FlexGateway. Includes Go microbenchmarks for hot-path functions and k6 load tests for end-to-end throughput measurement.
+Reproducible performance testing infrastructure for Apiloom Gateway CE. Includes Go microbenchmarks for hot-path functions and k6 load tests for end-to-end throughput measurement.
+
+**Canonical baseline results and methodology:** see [`RESULTS.md`](RESULTS.md).
+
+## Reference Environment
+
+The baseline numbers in `RESULTS.md` were produced on:
+
+| Field | Value |
+|-------|-------|
+| **Machine** | Apple M2 Max (MacBook Pro 14-inch, 2023) |
+| **CPU** | 12-core (8P + 4E), 3.5 GHz peak |
+| **RAM** | 32 GB |
+| **OS** | macOS Sequoia 15.4, Darwin 25.4.0 arm64 |
+| **Go version** | go1.26.x |
+| **GOMAXPROCS** | 12 |
+| **k6 version** | 0.57.x (for load tests) |
+| **k6 VUs (full run)** | 1000 VUs, 4-minute staged profile |
+| **k6 VUs (CI smoke)** | 20 VUs, 60-second flat run |
+| **Gateway config** | Default, no custom tuning |
+| **PostgreSQL** | 16 (not exercised in microbenchmarks) |
+
+Numbers from other environments will differ. Always record your hardware when sharing results
+(see §Hardware Disclosure below).
+
+## Performance Targets
+
+| Pipeline | Target RPS | Target P99 | Benchmark |
+|----------|-----------|-----------|-----------|
+| Auth + rate-limit (Lura proxy layer) | 738K | < 1ms | `BenchmarkAuthRateLimit` |
+| Proxy passthrough (Lura proxy layer) | 500K | < 2ms | `BenchmarkProxyPassthrough` |
+| AI proxy (token counting + budget) | 80K | < 5ms | `BenchmarkAIProxy` |
+| ProxyHandler end-to-end (HTTP) | — | < 50µs | `BenchmarkProxyHandler` |
+
+These targets apply to the **Lura proxy layer** (in-memory mock backend, no OS network stack).
+End-to-end k6 numbers will be lower and are separately tracked in `RESULTS.md §4`.
 
 ## Prerequisites
 
@@ -87,8 +122,26 @@ The `docker-compose.bench.yml` override adds a mock backend (nginx returning sta
 
 - **ns/op below 10,000:** Per-request overhead is under 10 microseconds. Typical for Go HTTP handlers.
 - **B/op and allocs/op:** Track these across releases. A jump in allocations often signals a performance regression.
-- **k6 p99 < 50ms:** The project target. If p99 exceeds this under load, investigate with `go tool pprof`.
+- **k6 p99 < 50ms:** End-to-end latency target. If p99 exceeds this under load, investigate with `go tool pprof`.
 - **Error rate < 1%:** Any higher suggests resource exhaustion or bugs under concurrency.
+- **CI regression gate:** The `benchmark.yml` workflow fails if any benchmark degrades by more than 10%
+  compared to the `main` branch baseline (measured via `benchstat` geomean). P99 > 1.5ms at the proxy
+  layer also fails the gate.
+
+## Comparison with Other Gateways
+
+The nginx mock backend in `nginx-bench.conf` serves static JSON with zero application logic, giving
+a raw OS + network stack baseline. The table below uses published data from each gateway's own docs.
+
+| Gateway | Language | p99 (reported) | Max RPS (reported) | Memory (idle) | License |
+|---------|----------|---------------|--------------------|---------------|---------|
+| **Apiloom CE** | Go | < 1ms (proxy layer) | 738K target | ~30MB | Apache 2.0 |
+| **KrakenD 2.x** | Go | ~2ms | ~70K | ~50MB | AGPL / Enterprise |
+| **Kong 3.x** | Lua/OpenResty | ~10ms | ~30K | ~200MB | Apache 2.0 |
+| **Apache APISIX 3.x** | Lua/OpenResty | ~5ms | ~45K | ~80MB | Apache 2.0 |
+
+Sources and methodology notes are in `RESULTS.md §5`. Apiloom's proxy-layer numbers are not
+directly comparable to gateway-level throughput figures from other tools.
 
 ## Hardware Disclosure
 

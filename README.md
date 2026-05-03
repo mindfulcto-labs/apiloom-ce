@@ -18,14 +18,14 @@ It is built on top of the [Lura framework](https://luraproject.org/), which we e
 
 ## Performance
 
-Benchmarked on Apple M3 Pro, eight cores, Postgres 16. Reproduce with `make bench` or the harness in [`benchmarks/`](benchmarks/).
+Reproduce with `make bench-full` from the `benchmarks/` directory. Full methodology and raw output in [`benchmarks/RESULTS.md`](benchmarks/RESULTS.md).
 
-| Scenario | Throughput | P99 latency |
-|---|---|---|
-| Auth + rate limit + proxy | 738,427 RPS | 0.8 ms |
-| Direct proxy (no blocks) | 1.2M+ RPS | 0.3 ms |
+| Scenario | Throughput | P99 latency | Scope | Verified |
+|---|---|---|---|---|
+| Auth + rate limit + proxy | 738K+ RPS | < 1 ms | Lura proxy layer, in-memory backend | Yes — M2 Max 12-core, 2026-05-03 |
+| Direct proxy (no blocks) | 1.2M+ RPS | 0.3 ms | Lura proxy layer, in-memory backend | Benchmark pending |
 
-These numbers are not marketing artifacts. The harness, the test plan, and the raw output are in the repository.
+**Scope note:** the proxy-layer figures use an in-memory mock backend. They measure gateway middleware cost (JWT HMAC-SHA256 + token-bucket rate limiter) with no OS TCP/TLS overhead. End-to-end throughput through a real HTTP listener is lower; the k6 results in `benchmarks/RESULTS.md §4` are the correct comparison for production sizing.
 
 ## Features
 

@@ -4,7 +4,13 @@ on:
   push:
     branches: [main]
   pull_request:
-    types: [labeled]
+    types: [opened, synchronize, reopened, labeled]
+    paths:
+      - 'internal/gateway/**'
+      - 'internal/block/**'
+      - 'pkg/**'
+      - 'benchmarks/**'
+      - 'cmd/gateway/**'
   schedule:
     # Weekly on Sunday at 02:00 UTC — catches silent drift on main.
     - cron: '0 2 * * 0'
@@ -20,7 +26,7 @@ jobs:
     if: |
       github.event_name == 'push' ||
       github.event_name == 'schedule' ||
-      (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'perf'))
+      github.event_name == 'pull_request'
 
     steps:
       - uses: actions/checkout@v4
@@ -39,12 +45,19 @@ jobs:
       - name: Benchmark (current)
         run: |
           go test \
-            -bench=. \
+            -bench='Benchmark(ProxyHandler|BlockChain|RouteMatch|JSONResponse)' \
             -benchmem \
             -count=5 \
             -timeout=10m \
             ./internal/gateway/... \
             | tee /tmp/bench-new.txt
+          go test \
+            -bench='Benchmark(ProxyPassthrough|AuthRateLimit|AIProxy)' \
+            -benchmem \
+            -count=5 \
+            -timeout=10m \
+            ./benchmarks/... \
+            | tee -a /tmp/bench-new.txt
 
       # ── Bench main for comparison (skip on push to main itself) ─────────
       - name: Checkout main
@@ -55,12 +68,19 @@ jobs:
         if: github.event_name == 'pull_request'
         run: |
           go test \
-            -bench=. \
+            -bench='Benchmark(ProxyHandler|BlockChain|RouteMatch|JSONResponse)' \
             -benchmem \
             -count=5 \
             -timeout=10m \
             ./internal/gateway/... \
             | tee /tmp/bench-old.txt
+          go test \
+            -bench='Benchmark(ProxyPassthrough|AuthRateLimit|AIProxy)' \
+            -benchmem \
+            -count=5 \
+            -timeout=10m \
+            ./benchmarks/... \
+            | tee -a /tmp/bench-old.txt
 
       # ── Regression check ────────────────────────────────────────────────
       - name: Compare vs main (fail if >10% regression)
@@ -75,18 +95,24 @@ jobs:
             exit 1
           fi
 
-      # ── P99 latency gate (proxy-layer BlockChain must stay < 1.5ms) ─────
+      # ── P99 latency gate ────────────────────────────────────────────────
+      # BlockChain median must stay < 1.5ms (proxy-layer base cost).
+      # AuthRateLimit p99-us custom metric must stay < 1000µs (marketing claim).
       - name: P99 latency gate
         run: |
-          # Extract BlockChain ns/op median from the new run.
-          # benchstat summary line format: "BenchmarkBlockChain-N  N  Xns ± Y%"
-          # We check the raw output for any run exceeding 1,500,000 ns (1.5ms).
+          # Check BlockChain ns/op — must stay under 1,500,000 ns (1.5ms).
           if grep 'BenchmarkBlockChain' /tmp/bench-new.txt \
               | awk '{print $3}' \
               | grep -v '^$' \
               | awk -F'.' '{print $1}' \
-              | awk '{ if ($1 > 1500000) { print "BlockChain ns/op=" $1 " exceeds 1,500,000 (1.5ms)"; exit 1 } }'; then
+              | awk '{ if ($1 > 1500000) { print "FAIL: BlockChain ns/op=" $1 " exceeds 1,500,000 (1.5ms)"; exit 1 } }'; then
             echo "::error::BlockChain P99 exceeds 1.5ms gate"
+            exit 1
+          fi
+          # Check AuthRateLimit p99-us — must stay under 1000µs (1ms marketing claim).
+          if grep 'BenchmarkAuthRateLimit' /tmp/bench-new.txt \
+              | awk '{ for(i=1;i<=NF;i++) if($i ~ /p99-us$/) { prev=$(i-1)+0; if(prev > 1000) { print "FAIL: AuthRateLimit p99=" prev "µs exceeds 1000µs (1ms)"; exit 1 } } }'; then
+            echo "::error::AuthRateLimit P99 exceeds 1ms gate — marketing claim at risk"
             exit 1
           fi
 

@@ -24,7 +24,10 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # OpenTelemetry collector. Opt in with `--profile otel`.
+  # Requires deploy/otel-collector-config.yaml (not shipped in CE; see docs/docs/guides/deployment.md).
   otel-collector:
+    profiles: ["otel"]
     image: otel/opentelemetry-collector-contrib:0.105.0
     command: ["--config=/etc/otel-collector-config.yaml"]
     volumes:
@@ -52,12 +55,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      otel-collector:
-        condition: service_started
     environment:
       FLEXGW_DATABASE_URL: "postgres://flexgw:flexgw_dev@postgres:5432/flexgateway?sslmode=disable"
       FLEXGW_LOG_LEVEL: "${FLEXGW_LOG_LEVEL:-debug}"
-      FLEXGW_OTEL_ENDPOINT: "http://otel-collector:4318"
+      FLEXGW_OTEL_ENDPOINT: "${FLEXGW_OTEL_ENDPOINT:-}"
       FLEXGW_OTEL_SERVICE_NAME: "apiloom-gateway"
     ports:
       - "18080:8080"
@@ -86,12 +87,10 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      otel-collector:
-        condition: service_started
     environment:
       FLEXGW_DATABASE_URL: "postgres://flexgw:flexgw_dev@postgres:5432/flexgateway?sslmode=disable"
       FLEXGW_LOG_LEVEL: "${FLEXGW_LOG_LEVEL:-debug}"
-      FLEXGW_OTEL_ENDPOINT: "http://otel-collector:4318"
+      FLEXGW_OTEL_ENDPOINT: "${FLEXGW_OTEL_ENDPOINT:-}"
       FLEXGW_OTEL_SERVICE_NAME: "apiloom-controlplane"
     ports:
       - "18081:8081"
@@ -105,7 +104,10 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # Web portal. Opt in with `--profile portal`.
+  # Source for ./web is shipped separately; not required for the gateway quickstart.
   portal:
+    profiles: ["portal"]
     build:
       context: ./web
       dockerfile: Dockerfile

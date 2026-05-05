@@ -3,6 +3,7 @@
 High-performance, open-source API gateway built in Go. Route, authenticate, rate limit, and proxy API traffic with sub-millisecond overhead.
 
 [![CI](https://github.com/cto-venkat/apiloom-ce/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/cto-venkat/apiloom-ce/actions/workflows/ci.yml)
+[![Quickstart](https://github.com/cto-venkat/apiloom-ce/actions/workflows/quickstart-smoke.yml/badge.svg?branch=main)](https://github.com/cto-venkat/apiloom-ce/actions/workflows/quickstart-smoke.yml)
 [![Security](https://github.com/cto-venkat/apiloom-ce/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/cto-venkat/apiloom-ce/actions/workflows/security.yml)
 [![Release](https://img.shields.io/github/v/release/cto-venkat/apiloom-ce?include_prereleases&sort=semver)](https://github.com/cto-venkat/apiloom-ce/releases)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)

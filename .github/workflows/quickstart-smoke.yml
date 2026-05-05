@@ -1,0 +1,73 @@
+# Copyright 2026 Venkat Software Inc.
+# SPDX-License-Identifier: Apache-2.0
+
+# Runs the README quickstart end-to-end to verify that the documented steps
+# work exactly as written. Both health endpoints are checked and their
+# response bodies are asserted.
+#
+# Triggers:
+#   - Every push to main (keeps the badge green and linkable from the README)
+#   - PRs that touch docker-compose.yml, README.md, or the Dockerfile (the
+#     three files that can break the quickstart experience)
+
+name: Quickstart Smoke
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    paths:
+      - 'docker-compose.yml'
+      - 'README.md'
+      - 'Dockerfile'
+
+jobs:
+  readme-quickstart:
+    name: README quickstart
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Step 1 — docker compose up -d (default profile: postgres + gateway + controlplane)
+      - name: Start stack
+        run: docker compose up -d --wait --wait-timeout 120
+        timeout-minutes: 8
+
+      # Step 2 — curl http://localhost:18080/healthz  (data plane)
+      # README says both endpoints return {"status":"ok"}
+      - name: Quickstart check — data plane (18080)
+        run: |
+          response=$(curl -sf \
+            --retry 15 --retry-delay 3 --retry-connrefused \
+            http://localhost:18080/healthz)
+          echo "Gateway response: $response"
+          echo "$response" | grep -q '"status":"ok"' || {
+            echo "FAIL: expected {\"status\":\"ok\"}, got: $response"
+            exit 1
+          }
+
+      # Step 3 — curl http://localhost:18081/healthz  (control plane)
+      - name: Quickstart check — control plane (18081)
+        run: |
+          response=$(curl -sf \
+            --retry 15 --retry-delay 3 --retry-connrefused \
+            http://localhost:18081/healthz)
+          echo "Control plane response: $response"
+          echo "$response" | grep -q '"status":"ok"' || {
+            echo "FAIL: expected {\"status\":\"ok\"}, got: $response"
+            exit 1
+          }
+
+      # Always collect logs on failure before teardown
+      - name: Collect container logs
+        if: failure()
+        run: docker compose logs --no-color --tail=200
+
+      # Step 4 — docker compose down
+      - name: Tear down
+        if: always()
+        run: docker compose down -v

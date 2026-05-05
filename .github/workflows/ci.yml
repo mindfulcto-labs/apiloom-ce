@@ -51,7 +51,7 @@ jobs:
         env:
           FLEXGW_TEST_DATABASE_URL: postgres://flexgw:flexgw_test@localhost:5432/flexgateway_test?sslmode=disable
       - name: Upload coverage
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           file: coverage.out
 

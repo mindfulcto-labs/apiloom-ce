@@ -15,7 +15,7 @@ require (
 	github.com/spf13/cobra v1.10.2
 	github.com/stretchr/testify v1.11.1
 	github.com/testcontainers/testcontainers-go v0.42.0
-	github.com/testcontainers/testcontainers-go/modules/postgres v0.41.0
+	github.com/testcontainers/testcontainers-go/modules/postgres v0.42.0
 	github.com/tetratelabs/wazero v1.11.0
 	github.com/tiktoken-go/tokenizer v0.7.0
 	go.opentelemetry.io/otel v1.43.0

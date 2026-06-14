@@ -112,7 +112,7 @@ jobs:
           GOOS=darwin GOARCH=arm64 make build && tar czf flexgateway-darwin-arm64.tar.gz -C bin .
 
       - name: Generate SLSA provenance for binaries
-        uses: actions/attest-build-provenance@v2
+        uses: actions/attest-build-provenance@v4
         with:
           subject-path: |
             flexgateway-linux-amd64.tar.gz

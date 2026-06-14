@@ -246,7 +246,7 @@ jobs:
             echo "Benchmark regression >10% detected"
             exit 1
           fi
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: bench-comparison
           path: bench-comparison.txt
@@ -263,7 +263,7 @@ jobs:
         run: |
           go test -bench=. -benchmem -count=5 $(go list ./... | grep -v /plugin/v1) | tee bench.txt
       - name: Upload benchmark results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: benchmarks
           path: bench.txt

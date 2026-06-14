@@ -42,7 +42,7 @@ jobs:
 
       - name: Build and push gateway image
         id: build-gateway
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           target: gateway
@@ -57,7 +57,7 @@ jobs:
 
       - name: Build and push controlplane image
         id: build-controlplane
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           target: controlplane

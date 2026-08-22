@@ -12,8 +12,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
-	"github.com/cto-venkat/apiloom-ce/internal/testutil"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/testutil"
 )
 
 func setupConsumerStore(t *testing.T) (*ConfigStore, context.Context) {

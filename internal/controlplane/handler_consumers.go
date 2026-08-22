@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // ConsumerConfigStore abstracts config.ConfigStore methods for consumer and API key operations.

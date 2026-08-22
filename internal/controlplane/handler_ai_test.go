@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // mockAIStore implements the store methods needed by AIHandler for unit testing.

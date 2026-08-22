@@ -5,7 +5,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // WriteProblem writes an RFC 7807 Problem Details JSON response.

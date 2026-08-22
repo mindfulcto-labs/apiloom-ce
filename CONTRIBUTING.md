@@ -15,8 +15,8 @@ Thank you for your interest in contributing. This guide covers everything you ne
 
 ```bash
 # Fork the repository on GitHub, then:
-git clone https://github.com/<your-username>/flex-gateway.git
-cd flex-gateway
+git clone https://github.com/<your-username>/apiloom-ce.git
+cd apiloom-ce
 ```
 
 ### Development Environment Setup

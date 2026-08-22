@@ -17,8 +17,8 @@ That's it. No Go toolchain, no database setup.
 ## Step 1: Clone and start (30 seconds)
 
 ```bash
-git clone https://github.com/cto-venkat/flex-gateway.git
-cd flex-gateway
+git clone https://github.com/mindfulcto-labs/apiloom-ce.git
+cd apiloom-ce
 docker compose up -d
 ```
 

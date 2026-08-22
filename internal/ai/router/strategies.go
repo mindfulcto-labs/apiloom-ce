@@ -5,7 +5,7 @@ import (
 	"math/big"
 	"sync/atomic"
 
-	"github.com/cto-venkat/apiloom-ce/internal/ai"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai"
 )
 
 // --- RoundRobin ---

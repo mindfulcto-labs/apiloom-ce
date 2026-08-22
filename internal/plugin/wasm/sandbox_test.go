@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cto-venkat/apiloom-ce/internal/plugin/wasm"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/plugin/wasm"
 )
 
 // minimalWASM returns a minimal valid WASM module binary that exports a _start function.

@@ -14,7 +14,7 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // bcryptCost is the cost factor for bcrypt hashing of API keys.

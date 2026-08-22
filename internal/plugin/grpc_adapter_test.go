@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	pluginv1 "github.com/cto-venkat/apiloom-ce/api/plugin/v1"
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
-	"github.com/cto-venkat/apiloom-ce/internal/plugin"
+	pluginv1 "github.com/mindfulcto-labs/apiloom-ce/api/plugin/v1"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/plugin"
 	"github.com/luraproject/lura/v2/proxy"
 	"github.com/stretchr/testify/require"
 	"google.golang.org/grpc"

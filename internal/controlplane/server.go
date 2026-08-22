@@ -14,8 +14,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
 
-	"github.com/cto-venkat/apiloom-ce/internal/config"
-	"github.com/cto-venkat/apiloom-ce/internal/plugin"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/config"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/plugin"
 )
 
 // Server holds the control plane API dependencies and wires all handlers

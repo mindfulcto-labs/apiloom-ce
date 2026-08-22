@@ -8,8 +8,8 @@ import (
 	"encoding/base64"
 	"strings"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
-	"github.com/cto-venkat/apiloom-ce/pkg/flex"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/pkg/flex"
 	"github.com/luraproject/lura/v2/proxy"
 )
 

@@ -7,7 +7,7 @@ import (
 
 	"github.com/google/uuid"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // ConsumerStore is the interface for consumer and API key persistence.

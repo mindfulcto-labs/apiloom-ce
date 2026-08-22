@@ -5,7 +5,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/cto-venkat/apiloom-ce/internal/plugin/wasm"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/plugin/wasm"
 )
 
 func TestCapabilitySet_AllowsHost(t *testing.T) {

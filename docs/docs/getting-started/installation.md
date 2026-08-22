@@ -13,8 +13,8 @@ FlexGateway runs as two Go binaries (data plane and control plane) backed by Pos
 The quickest path. Starts the gateway, control plane, and PostgreSQL in containers.
 
 ```bash
-git clone https://github.com/cto-venkat/flex-gateway.git
-cd flex-gateway
+git clone https://github.com/mindfulcto-labs/apiloom-ce.git
+cd apiloom-ce
 docker compose up -d
 ```
 
@@ -37,8 +37,8 @@ See the [Quickstart](./quickstart.md) for a full walkthrough.
 ### Build
 
 ```bash
-git clone https://github.com/cto-venkat/flex-gateway.git
-cd flex-gateway
+git clone https://github.com/mindfulcto-labs/apiloom-ce.git
+cd apiloom-ce
 make build
 ```
 

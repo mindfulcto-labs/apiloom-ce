@@ -10,7 +10,7 @@ cutting releases, and setting the technical direction of the project. See
 
 | Name | GitHub | Organization | Areas of Ownership |
 |------|--------|--------------|-------------------|
-| Venkat | [@cto-venkat](https://github.com/cto-venkat) | Venkat Software Inc. | Core gateway, control plane, plugin SDK, release process |
+| Venkat | [@venkat-uk](https://github.com/venkat-uk) | Venkat Software Inc. | Core gateway, control plane, plugin SDK, release process |
 
 ## Emeritus Maintainers
 

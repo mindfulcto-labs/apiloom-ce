@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
-	"github.com/cto-venkat/apiloom-ce/internal/testutil"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/testutil"
 )
 
 // appRolePool creates a connection pool using the flexgateway_app role.

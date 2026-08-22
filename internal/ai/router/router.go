@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/cto-venkat/apiloom-ce/internal/ai"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai"
 )
 
 // ErrNoModelsAvailable is returned when no active models match the routing criteria.

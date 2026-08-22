@@ -14,7 +14,7 @@ If you are running Apiloom Gateway CE and would like to be listed, open a pull r
 
 | Organization | Environment | Use Case | Contact / Link |
 |---|---|---|---|
-| [Venkat Software Inc.](https://apiloom.io) | Production (internal) | Origin team. Runs Apiloom Gateway CE in front of internal services and as the data plane for the Apiloom Platform. | [@cto-venkat](https://github.com/cto-venkat) |
+| [Venkat Software Inc.](https://apiloom.io) | Production (internal) | Origin team. Runs Apiloom Gateway CE in front of internal services and as the data plane for the Apiloom Platform. | [@venkat-uk](https://github.com/venkat-uk) |
 
 ## What "adopter" means here
 

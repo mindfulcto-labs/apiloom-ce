@@ -17,8 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 	"golang.org/x/crypto/bcrypt"
 
-	auth "github.com/cto-venkat/apiloom-ce/internal/block/auth"
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	auth "github.com/mindfulcto-labs/apiloom-ce/internal/block/auth"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // --- Mock ConsumerStore ---

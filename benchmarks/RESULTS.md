@@ -49,7 +49,7 @@ Run with `make bench-go` from the `benchmarks/` directory (or directly via `go t
 ```
 goos: darwin
 goarch: arm64
-pkg: github.com/cto-venkat/apiloom-ce/internal/gateway
+pkg: github.com/mindfulcto-labs/apiloom-ce/internal/gateway
 cpu: Apple M2 Max
 
 BenchmarkProxyHandler-12    34570    36042 ns/op   25931 B/op   136 allocs/op
@@ -117,7 +117,7 @@ benchstat benchmarks/results/rps-bench.txt
 ```
 goos: darwin
 goarch: arm64
-pkg: github.com/cto-venkat/apiloom-ce/benchmarks
+pkg: github.com/mindfulcto-labs/apiloom-ce/benchmarks
 cpu: Apple M2 Max
 
 BenchmarkProxyPassthrough-12    31206    36119 ns/op    385.0 p50-us    1084 p99-us    27293 B/op    176 allocs/op

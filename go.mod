@@ -1,4 +1,4 @@
-module github.com/cto-venkat/apiloom-ce
+module github.com/mindfulcto-labs/apiloom-ce
 
 go 1.26
 

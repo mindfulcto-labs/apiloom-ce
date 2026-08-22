@@ -10,7 +10,7 @@ import (
 
 	"github.com/luraproject/lura/v2/proxy"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // errServerError is returned internally when upstream returns 5xx,

@@ -12,15 +12,15 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cto-venkat/apiloom-ce/internal/ai"
-	"github.com/cto-venkat/apiloom-ce/internal/ai/budget"
-	ailog "github.com/cto-venkat/apiloom-ce/internal/ai/log"
-	"github.com/cto-venkat/apiloom-ce/internal/ai/provider"
-	"github.com/cto-venkat/apiloom-ce/internal/ai/router"
-	"github.com/cto-venkat/apiloom-ce/internal/ai/token"
-	"github.com/cto-venkat/apiloom-ce/internal/block/auth"
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
-	"github.com/cto-venkat/apiloom-ce/internal/observability"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai/budget"
+	ailog "github.com/mindfulcto-labs/apiloom-ce/internal/ai/log"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai/provider"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai/router"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai/token"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/block/auth"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/observability"
 )
 
 // Handler is the AI proxy HTTP handler that processes /v1/chat/completions requests.

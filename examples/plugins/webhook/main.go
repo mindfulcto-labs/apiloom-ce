@@ -14,7 +14,7 @@ import (
 	"os"
 	"time"
 
-	pluginv1 "github.com/cto-venkat/apiloom-ce/api/plugin/v1"
+	pluginv1 "github.com/mindfulcto-labs/apiloom-ce/api/plugin/v1"
 	"google.golang.org/grpc"
 )
 

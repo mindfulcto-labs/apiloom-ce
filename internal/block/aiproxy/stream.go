@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/cto-venkat/apiloom-ce/internal/ai"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai"
 )
 
 // TokenAccumulator accumulates token usage from intercepted SSE events.

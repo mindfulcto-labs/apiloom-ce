@@ -17,8 +17,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/cto-venkat/apiloom-ce/internal/config"
-	"github.com/cto-venkat/apiloom-ce/internal/controlplane"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/config"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/controlplane"
 )
 
 var (

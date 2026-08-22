@@ -8,9 +8,9 @@ import (
 	"io"
 	"time"
 
-	pluginv1 "github.com/cto-venkat/apiloom-ce/api/plugin/v1"
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
-	"github.com/cto-venkat/apiloom-ce/pkg/flex"
+	pluginv1 "github.com/mindfulcto-labs/apiloom-ce/api/plugin/v1"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/pkg/flex"
 	"github.com/luraproject/lura/v2/proxy"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"

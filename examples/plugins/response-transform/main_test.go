@@ -3,7 +3,7 @@ package main
 import (
 	"testing"
 
-	"github.com/cto-venkat/apiloom-ce/pkg/flex"
+	"github.com/mindfulcto-labs/apiloom-ce/pkg/flex"
 	"github.com/luraproject/lura/v2/proxy"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

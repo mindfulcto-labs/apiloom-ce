@@ -4,7 +4,7 @@ package auth
 import (
 	"context"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // ctxKeyConsumer is the unexported typed context key for consumer identity.

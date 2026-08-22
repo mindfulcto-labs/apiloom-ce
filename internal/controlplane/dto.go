@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 	"github.com/google/uuid"
 )
 

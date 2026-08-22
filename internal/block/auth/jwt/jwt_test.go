@@ -14,9 +14,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/cto-venkat/apiloom-ce/internal/block/auth"
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
-	"github.com/cto-venkat/apiloom-ce/internal/gateway"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/block/auth"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/gateway"
 	"github.com/google/uuid"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"

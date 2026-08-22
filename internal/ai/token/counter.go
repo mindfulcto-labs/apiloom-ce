@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"math"
 
-	"github.com/cto-venkat/apiloom-ce/internal/ai"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai"
 )
 
 // Counter provides token estimation, reconciliation, and cost calculation.

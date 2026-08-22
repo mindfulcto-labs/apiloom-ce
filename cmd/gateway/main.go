@@ -20,10 +20,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/sync/errgroup"
 
-	"github.com/cto-venkat/apiloom-ce/internal/config"
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
-	"github.com/cto-venkat/apiloom-ce/internal/gateway"
-	"github.com/cto-venkat/apiloom-ce/internal/observability"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/config"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/gateway"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/observability"
 )
 
 var (

@@ -7,7 +7,7 @@ import (
 
 	"github.com/tiktoken-go/tokenizer"
 
-	"github.com/cto-venkat/apiloom-ce/internal/ai"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai"
 )
 
 // perMessageOverhead is the number of tokens added per message for role/separator

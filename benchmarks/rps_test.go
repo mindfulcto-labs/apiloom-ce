@@ -19,10 +19,10 @@ import (
 	"github.com/luraproject/lura/v2/proxy"
 	"github.com/prometheus/client_golang/prometheus"
 
-	"github.com/cto-venkat/apiloom-ce/internal/block/ratelimit"
-	"github.com/cto-venkat/apiloom-ce/internal/block/security"
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
-	"github.com/cto-venkat/apiloom-ce/internal/gateway"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/block/ratelimit"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/block/security"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/gateway"
 )
 
 // mockConfigProvider implements gateway.ConfigProvider for benchmarks.

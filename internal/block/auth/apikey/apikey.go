@@ -13,8 +13,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"golang.org/x/sync/errgroup"
 
-	auth "github.com/cto-venkat/apiloom-ce/internal/block/auth"
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	auth "github.com/mindfulcto-labs/apiloom-ce/internal/block/auth"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // defaultGracePeriod is the default time a deprecated key remains valid after rotation.

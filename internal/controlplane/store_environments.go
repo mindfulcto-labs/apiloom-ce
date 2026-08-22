@@ -8,8 +8,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
-	"github.com/cto-venkat/apiloom-ce/internal/config"
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/config"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // EnvironmentStore abstracts database operations for environments.

@@ -15,8 +15,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/cto-venkat/apiloom-ce/internal/config"
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/config"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 func newTestAPIVersionHandler(store APIVersionStore) *APIVersionHandler {

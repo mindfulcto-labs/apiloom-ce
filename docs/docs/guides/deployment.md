@@ -13,8 +13,8 @@ FlexGateway ships as multi-arch container images built on a distroless base. The
 The repository includes a `docker-compose.yml` that starts PostgreSQL, the gateway, and the control plane:
 
 ```bash
-git clone https://github.com/cto-venkat/flex-gateway.git
-cd flex-gateway
+git clone https://github.com/mindfulcto-labs/apiloom-ce.git
+cd apiloom-ce
 docker compose up -d
 ```
 

@@ -6,10 +6,10 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/cto-venkat/apiloom-ce/internal/ai"
-	"github.com/cto-venkat/apiloom-ce/internal/ai/provider"
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
-	"github.com/cto-venkat/apiloom-ce/internal/observability"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai/provider"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/observability"
 )
 
 // FallbackChain tries models in order, skipping those whose provider

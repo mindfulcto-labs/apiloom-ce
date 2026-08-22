@@ -3,7 +3,7 @@ package router
 import (
 	"testing"
 
-	"github.com/cto-venkat/apiloom-ce/internal/ai"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai"
 	"github.com/stretchr/testify/require"
 )
 

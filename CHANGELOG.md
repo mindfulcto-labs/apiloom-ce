@@ -4,7 +4,7 @@ All notable changes to Apiloom Gateway CE are documented here.
 
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-Each release is tagged in git as `vX.Y.Z` and published as a [GitHub Release](https://github.com/cto-venkat/apiloom-ce/releases) with signed container images and SPDX SBOMs (see [docs/release-process.md](docs/release-process.md)).
+Each release is tagged in git as `vX.Y.Z` and published as a [GitHub Release](https://github.com/mindfulcto-labs/apiloom-ce/releases) with signed container images and SPDX SBOMs (see [docs/release-process.md](docs/release-process.md)).
 
 ## [Unreleased]
 
@@ -15,7 +15,7 @@ Tracking work in flight. See [ROADMAP.md](ROADMAP.md) for the current quarter's 
 First public release of Apiloom Gateway CE under the Apache 2.0 license. Consolidates the gateway, control plane, plugin SDK, CLI, Helm chart, and benchmark suite into one repository, drops the internal "FlexGateway" code name, and folds in the security and compliance surface developed across earlier internal releases.
 
 ### Added
-- Public repository at `github.com/cto-venkat/apiloom-ce` with Apache 2.0 license, contributor docs, governance, security policy, and CNCF-aligned project files.
+- Public repository at `github.com/mindfulcto-labs/apiloom-ce` with Apache 2.0 license, contributor docs, governance, security policy, and CNCF-aligned project files.
 - GitHub Actions for CI (lint, test matrix on Postgres 15/16/17, build, web build, benchmark regression, staging deploy), release (multi-arch images, cosign signing, SPDX SBOM via syft, Helm chart push to GHCR), and security (govulncheck, gosec).
 - Issue and pull request templates, Dependabot config, and a CODEOWNERS-style maintainer file.
 - Benchmark harness reproducing 738K+ RPS auth+rate-limit and 1.2M+ RPS direct-proxy on M3 Pro hardware. See `benchmarks/`.
@@ -92,10 +92,10 @@ Initial release. Core gateway functionality.
 - Helm charts and Docker images.
 - Docusaurus documentation site.
 
-[Unreleased]: https://github.com/cto-venkat/apiloom-ce/compare/v0.7.0...HEAD
-[0.7.0]: https://github.com/cto-venkat/apiloom-ce/releases/tag/v0.7.0
-[0.5.0]: https://github.com/cto-venkat/apiloom-ce/releases/tag/v0.5.0
-[0.4.0]: https://github.com/cto-venkat/apiloom-ce/releases/tag/v0.4.0
-[0.3.0]: https://github.com/cto-venkat/apiloom-ce/releases/tag/v0.3.0
-[0.2.0]: https://github.com/cto-venkat/apiloom-ce/releases/tag/v0.2.0
-[0.1.0]: https://github.com/cto-venkat/apiloom-ce/releases/tag/v0.1.0
+[Unreleased]: https://github.com/mindfulcto-labs/apiloom-ce/compare/v0.7.0...HEAD
+[0.7.0]: https://github.com/mindfulcto-labs/apiloom-ce/releases/tag/v0.7.0
+[0.5.0]: https://github.com/mindfulcto-labs/apiloom-ce/releases/tag/v0.5.0
+[0.4.0]: https://github.com/mindfulcto-labs/apiloom-ce/releases/tag/v0.4.0
+[0.3.0]: https://github.com/mindfulcto-labs/apiloom-ce/releases/tag/v0.3.0
+[0.2.0]: https://github.com/mindfulcto-labs/apiloom-ce/releases/tag/v0.2.0
+[0.1.0]: https://github.com/mindfulcto-labs/apiloom-ce/releases/tag/v0.1.0

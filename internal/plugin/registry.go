@@ -9,7 +9,7 @@ import (
 
 	"github.com/luraproject/lura/v2/proxy"
 
-	"github.com/cto-venkat/apiloom-ce/pkg/flex"
+	"github.com/mindfulcto-labs/apiloom-ce/pkg/flex"
 )
 
 // BlockFactory creates a Block instance from plugin configuration JSON.

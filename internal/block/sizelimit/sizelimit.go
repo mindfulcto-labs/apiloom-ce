@@ -11,7 +11,7 @@ import (
 
 	"github.com/luraproject/lura/v2/proxy"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // SizeLimitBlock implements the Block interface for request body size limiting.

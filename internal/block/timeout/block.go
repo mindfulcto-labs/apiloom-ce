@@ -8,7 +8,7 @@ import (
 
 	"github.com/luraproject/lura/v2/proxy"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // ctxKey is an unexported type for context keys in this package.

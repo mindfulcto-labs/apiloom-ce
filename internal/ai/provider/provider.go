@@ -8,7 +8,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/cto-venkat/apiloom-ce/internal/ai"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai"
 )
 
 // Provider defines the contract for LLM provider adapters.

@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // ValidateRouteConfig checks that a RouteConfig has all required fields.

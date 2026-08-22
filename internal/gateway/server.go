@@ -18,7 +18,7 @@ import (
 	luraconfig "github.com/luraproject/lura/v2/config"
 	"github.com/luraproject/lura/v2/proxy"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // ConfigProvider is satisfied by config.Loader or any type with an atomic Get().

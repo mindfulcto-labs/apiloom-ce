@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/luraproject/lura/v2/proxy"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // canaryContextKey is the unexported key for storing the active version in the context.

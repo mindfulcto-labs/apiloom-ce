@@ -9,8 +9,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/cto-venkat/apiloom-ce/internal/ai"
-	"github.com/cto-venkat/apiloom-ce/internal/ai/provider"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai/provider"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

@@ -1,8 +1,8 @@
 package aiproxy
 
 import (
-	"github.com/cto-venkat/apiloom-ce/internal/ai"
-	"github.com/cto-venkat/apiloom-ce/internal/ai/router"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/ai/router"
 )
 
 const (

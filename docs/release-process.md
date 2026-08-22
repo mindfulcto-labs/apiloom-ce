@@ -60,23 +60,23 @@ Reviewers do not cut releases. Contributors do not cut releases. The release man
    The tag must follow `vX.Y.Z` exactly (lowercase `v`, no suffixes for stable releases). Pre-releases use `vX.Y.Z-rc.N`, `vX.Y.Z-beta.N`, etc., per semver.
 
 4. **Watch the release workflow.** Pushing the tag triggers `.github/workflows/release.yml`. The workflow runs the test suite, then builds and publishes:
-   - Multi-architecture (amd64, arm64) container images for the gateway and control plane to `ghcr.io/cto-venkat/apiloom-ce/{gateway,controlplane}:vX.Y.Z` and `:latest`.
+   - Multi-architecture (amd64, arm64) container images for the gateway and control plane to `ghcr.io/mindfulcto-labs/apiloom-ce/{gateway,controlplane}:vX.Y.Z` and `:latest`.
    - Cosign keyless signatures (Sigstore OIDC) on each image.
    - SPDX SBOMs for each image, generated with `syft`, attached to the GitHub Release.
    - Pre-built binaries for `linux/amd64`, `linux/arm64`, and `darwin/arm64` as `.tar.gz` archives.
-   - The Helm chart packaged and pushed to `oci://ghcr.io/cto-venkat/apiloom-ce/charts`.
+   - The Helm chart packaged and pushed to `oci://ghcr.io/mindfulcto-labs/apiloom-ce/charts`.
    - A GitHub Release with the changelog snippet rendered by `git-cliff`.
 
 5. **Verify artifacts:**
    ```bash
    # Image signatures (replace with real digest)
-   cosign verify ghcr.io/cto-venkat/apiloom-ce/gateway:vX.Y.Z \
-     --certificate-identity-regexp "https://github.com/cto-venkat/apiloom-ce" \
+   cosign verify ghcr.io/mindfulcto-labs/apiloom-ce/gateway:vX.Y.Z \
+     --certificate-identity-regexp "https://github.com/mindfulcto-labs/apiloom-ce" \
      --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
 
    # Pull and smoke test
-   docker pull ghcr.io/cto-venkat/apiloom-ce/gateway:vX.Y.Z
-   docker run --rm ghcr.io/cto-venkat/apiloom-ce/gateway:vX.Y.Z --version
+   docker pull ghcr.io/mindfulcto-labs/apiloom-ce/gateway:vX.Y.Z
+   docker run --rm ghcr.io/mindfulcto-labs/apiloom-ce/gateway:vX.Y.Z --version
    ```
 
 6. **Publish the announcement:**

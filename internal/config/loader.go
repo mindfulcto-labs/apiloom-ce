@@ -8,7 +8,7 @@ import (
 	"log/slog"
 	"sync/atomic"
 
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // ConfigLoader abstracts the source of gateway configuration.

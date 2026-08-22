@@ -14,8 +14,8 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/luraproject/lura/v2/proxy"
 
-	"github.com/cto-venkat/apiloom-ce/internal/block/auth"
-	"github.com/cto-venkat/apiloom-ce/internal/domain"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/block/auth"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
 // RateLimitBlock implements gateway.Block for local token-bucket rate limiting

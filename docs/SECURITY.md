@@ -13,7 +13,7 @@ This policy covers the components of the Apiloom Gateway CE project, including:
 - The CLI (`cmd/fgctl`).
 - The plugin SDK (`pkg/flex`).
 - The Helm chart (`charts/`).
-- The official container images published to `ghcr.io/cto-venkat/apiloom-ce/*`.
+- The official container images published to `ghcr.io/mindfulcto-labs/apiloom-ce/*`.
 - The example plugins in `examples/plugins/` (security issues that could affect users following the examples).
 - The docs site at `docs.apiloom.io` and the marketing site at `apiloom.io`, *only* for issues that could compromise visitors (e.g., XSS, supply-chain). Unauthenticated content errors and typos are not in scope.
 
@@ -58,7 +58,7 @@ We will accept reports in English. Other languages are welcome but may slow our 
 | Within **7 days** | We share a triage summary: confirmed/disputed, assigned severity, owner on our side, and an initial fix timeline. |
 | Ongoing | We keep you in the loop. You can ask for an update at any time. |
 | At fix | We coordinate a release window with you, including any embargoed disclosure. |
-| At disclosure | We publish a [GitHub Security Advisory](https://github.com/cto-venkat/apiloom-ce/security/advisories), credit you (unless you opt out), and request a CVE. |
+| At disclosure | We publish a [GitHub Security Advisory](https://github.com/mindfulcto-labs/apiloom-ce/security/advisories), credit you (unless you opt out), and request a CVE. |
 
 If you have not heard from us within 24 hours, please send a follow-up to `security@apiloom.io`. Inboxes get full and we would rather hear twice than miss your report.
 
@@ -153,5 +153,5 @@ If you are reporting an **abuse incident** on a service operated by Apiloom (rat
 ## See also
 
 - Repository-root short policy: [`/SECURITY.md`](../SECURITY.md).
-- GitHub Security Advisories for this project: [github.com/cto-venkat/apiloom-ce/security/advisories](https://github.com/cto-venkat/apiloom-ce/security/advisories).
+- GitHub Security Advisories for this project: [github.com/mindfulcto-labs/apiloom-ce/security/advisories](https://github.com/mindfulcto-labs/apiloom-ce/security/advisories).
 - STRIDE threat model: [`docs/security/threat-model-2026-05.md`](security/threat-model-2026-05.md).

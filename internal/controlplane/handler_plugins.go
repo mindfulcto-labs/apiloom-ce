@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"github.com/cto-venkat/apiloom-ce/internal/plugin"
+	"github.com/mindfulcto-labs/apiloom-ce/internal/plugin"
 )
 
 // PluginStoreInterface abstracts the plugin store methods used by PluginHandler.

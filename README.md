@@ -2,16 +2,16 @@
 
 High-performance, open-source API gateway built in Go. Route, authenticate, rate limit, and proxy API traffic with sub-millisecond overhead.
 
-[![CI](https://github.com/cto-venkat/apiloom-ce/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/cto-venkat/apiloom-ce/actions/workflows/ci.yml)
-[![Quickstart](https://github.com/cto-venkat/apiloom-ce/actions/workflows/quickstart-smoke.yml/badge.svg?branch=main)](https://github.com/cto-venkat/apiloom-ce/actions/workflows/quickstart-smoke.yml)
-[![Security](https://github.com/cto-venkat/apiloom-ce/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/cto-venkat/apiloom-ce/actions/workflows/security.yml)
-[![Release](https://img.shields.io/github/v/release/cto-venkat/apiloom-ce?include_prereleases&sort=semver)](https://github.com/cto-venkat/apiloom-ce/releases)
+[![CI](https://github.com/mindfulcto-labs/apiloom-ce/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mindfulcto-labs/apiloom-ce/actions/workflows/ci.yml)
+[![Quickstart](https://github.com/mindfulcto-labs/apiloom-ce/actions/workflows/quickstart-smoke.yml/badge.svg?branch=main)](https://github.com/mindfulcto-labs/apiloom-ce/actions/workflows/quickstart-smoke.yml)
+[![Security](https://github.com/mindfulcto-labs/apiloom-ce/actions/workflows/security.yml/badge.svg?branch=main)](https://github.com/mindfulcto-labs/apiloom-ce/actions/workflows/security.yml)
+[![Release](https://img.shields.io/github/v/release/mindfulcto-labs/apiloom-ce?include_prereleases&sort=semver)](https://github.com/mindfulcto-labs/apiloom-ce/releases)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
-[![Go Reference](https://pkg.go.dev/badge/github.com/cto-venkat/apiloom-ce/pkg/flex.svg)](https://pkg.go.dev/github.com/cto-venkat/apiloom-ce/pkg/flex)
+[![Go Reference](https://pkg.go.dev/badge/github.com/mindfulcto-labs/apiloom-ce/pkg/flex.svg)](https://pkg.go.dev/github.com/mindfulcto-labs/apiloom-ce/pkg/flex)
 
 ## What is Apiloom Gateway CE?
 
-Apiloom Gateway CE is an open-source API gateway you can run in front of your services. It does the standard gateway job — routing, authentication, rate limiting, retries, circuit breaking, observability — and adds a few things that are usually pay-walled elsewhere: a unified LLM proxy, hot configuration reload via PostgreSQL `LISTEN/NOTIFY`, and a public Go plugin SDK.
+Apiloom Gateway CE is an open-source API gateway you can run in front of your services. It does the standard gateway job, routing, authentication, rate limiting, retries, circuit breaking, observability, and adds a few things that are usually pay-walled elsewhere: a unified LLM proxy, hot configuration reload via PostgreSQL `LISTEN/NOTIFY`, and a public Go plugin SDK.
 
 It is the data-plane core of the [Apiloom Platform](https://apiloom.io). The CE distribution is Apache 2.0 and ships with everything you need to run it in production: a CLI, a Helm chart, container images, signed releases, and a benchmark harness you can rerun on your own hardware.
 
@@ -23,28 +23,28 @@ Reproduce with `make bench-full` from the `benchmarks/` directory. Full methodol
 
 | Scenario | Throughput | P99 latency | Scope | Verified |
 |---|---|---|---|---|
-| Auth + rate limit + proxy | 738K+ RPS | < 1 ms | Lura proxy layer, in-memory backend | Yes — M2 Max 12-core, 2026-05-03 |
+| Auth + rate limit + proxy | 738K+ RPS | < 1 ms | Lura proxy layer, in-memory backend | Yes, M2 Max 12-core, 2026-05-03 |
 | Direct proxy (no blocks) | 1.2M+ RPS | 0.3 ms | Lura proxy layer, in-memory backend | Benchmark pending |
 
 **Scope note:** the proxy-layer figures use an in-memory mock backend. They measure gateway middleware cost (JWT HMAC-SHA256 + token-bucket rate limiter) with no OS TCP/TLS overhead. End-to-end throughput through a real HTTP listener is lower; the k6 results in `benchmarks/RESULTS.md §4` are the correct comparison for production sizing.
 
 ## Features
 
-- **Multi-protocol routing** — REST, GraphQL, WebSocket, gRPC, and SSE through a single gateway.
-- **Block-based middleware** — auth (JWT, API key, mTLS), rate limiting (local and distributed), CORS, circuit breaker, retry, timeout, request size limits, body transforms.
-- **Unified LLM proxy** — model routing across OpenAI, Anthropic, and Gemini with token counting and per-tenant cost ceilings.
-- **Hot config reload** — PostgreSQL `LISTEN/NOTIFY` propagates config changes to running gateways with no restart and no in-flight request loss.
-- **Plugin SDK** — build custom blocks against the public Go SDK ([`pkg/flex/`](pkg/flex/)).
-- **Observability** — OpenTelemetry tracing, Prometheus metrics, structured JSON logging.
-- **CLI (`fgctl`)** — manage routes, backends, consumers, config history, and rollbacks.
-- **Kubernetes-ready** — Helm chart, health and readiness probes, graceful shutdown.
+- **Multi-protocol routing**, REST, GraphQL, WebSocket, gRPC, and SSE through a single gateway.
+- **Block-based middleware**, auth (JWT, API key, mTLS), rate limiting (local and distributed), CORS, circuit breaker, retry, timeout, request size limits, body transforms.
+- **Unified LLM proxy**, model routing across OpenAI, Anthropic, and Gemini with token counting and per-tenant cost ceilings.
+- **Hot config reload**, PostgreSQL `LISTEN/NOTIFY` propagates config changes to running gateways with no restart and no in-flight request loss.
+- **Plugin SDK**, build custom blocks against the public Go SDK ([`pkg/flex/`](pkg/flex/)).
+- **Observability**, OpenTelemetry tracing, Prometheus metrics, structured JSON logging.
+- **CLI (`fgctl`)**, manage routes, backends, consumers, config history, and rollbacks.
+- **Kubernetes-ready**, Helm chart, health and readiness probes, graceful shutdown.
 
 ## Quick start
 
 Bring up the full stack with Docker Compose. Five minutes from clone to a proxied request.
 
 ```bash
-git clone https://github.com/cto-venkat/apiloom-ce.git
+git clone https://github.com/mindfulcto-labs/apiloom-ce.git
 cd apiloom-ce
 
 # Start gateway + control plane + Postgres
@@ -57,7 +57,7 @@ curl http://localhost:18081/healthz   # control plane
 
 Both endpoints return `{"status":"ok"}`.
 
-For the full quickstart — creating a backend, adding a route, sending a proxied request, enabling the security and SSO blocks — follow [`docs/docs/getting-started/quickstart.md`](docs/docs/getting-started/quickstart.md).
+For the full quickstart, creating a backend, adding a route, sending a proxied request, enabling the security and SSO blocks, follow [`docs/docs/getting-started/quickstart.md`](docs/docs/getting-started/quickstart.md).
 
 ## Building from source
 
@@ -110,7 +110,7 @@ All configuration is via environment variables. Full list in [`docs/docs/referen
             └─ Block chain: auth ─► rate limit ─► transform ─► proxy
 ```
 
-Every gateway feature beyond core routing is a `Block` implementing a small interface. Blocks compose freely — add auth, rate limiting, CORS, circuit breaking, and transforms in any order. Config changes flow from the control plane through Postgres `LISTEN/NOTIFY` to running gateway processes, which atomically swap their config without dropping in-flight requests.
+Every gateway feature beyond core routing is a `Block` implementing a small interface. Blocks compose freely, add auth, rate limiting, CORS, circuit breaking, and transforms in any order. Config changes flow from the control plane through Postgres `LISTEN/NOTIFY` to running gateway processes, which atomically swap their config without dropping in-flight requests.
 
 For a deeper architecture treatment, see:
 
@@ -128,7 +128,7 @@ package main
 import (
     "context"
 
-    "github.com/cto-venkat/apiloom-ce/pkg/flex"
+    "github.com/mindfulcto-labs/apiloom-ce/pkg/flex"
     "github.com/luraproject/lura/v2/proxy"
 )
 
@@ -180,15 +180,15 @@ benchmarks/             performance benchmarks
 
 ## Adopters
 
-Are you running Apiloom Gateway CE? Add yourself to [`ADOPTERS.md`](ADOPTERS.md) — even a one-line entry helps the project and the maturity case for CNCF.
+Are you running Apiloom Gateway CE? Add yourself to [`ADOPTERS.md`](ADOPTERS.md), even a one-line entry helps the project and the maturity case for CNCF.
 
 ## Community
 
-- **GitHub Discussions** — [github.com/cto-venkat/apiloom-ce/discussions](https://github.com/cto-venkat/apiloom-ce/discussions)
-- **Issues** — [github.com/cto-venkat/apiloom-ce/issues](https://github.com/cto-venkat/apiloom-ce/issues) · check the `good first issue` label if you want to contribute
-- **Discord** — coming soon. Watch the [latest release](https://github.com/cto-venkat/apiloom-ce/releases) for the invite link
-- **Security reports** — `security@apiloom.io` (do not file public issues; see [`docs/SECURITY.md`](docs/SECURITY.md))
-- **Code of Conduct** — [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
+- **GitHub Discussions**, [github.com/mindfulcto-labs/apiloom-ce/discussions](https://github.com/mindfulcto-labs/apiloom-ce/discussions)
+- **Issues**, [github.com/mindfulcto-labs/apiloom-ce/issues](https://github.com/mindfulcto-labs/apiloom-ce/issues) · check the `good first issue` label if you want to contribute
+- **Discord**, coming soon. Watch the [latest release](https://github.com/mindfulcto-labs/apiloom-ce/releases) for the invite link
+- **Security reports**, `security@apiloom.io` (do not file public issues; see [`docs/SECURITY.md`](docs/SECURITY.md))
+- **Code of Conduct**, [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md)
 
 ## Contributing
 
@@ -197,6 +197,14 @@ Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for development setup, the test workfl
 ## Enterprise features
 
 Apiloom Gateway CE is the open-source core. The [Apiloom Platform](https://apiloom.io) builds on it with managed control plane, API intelligence graphs, compliance dashboards (SOC 2, GDPR, HIPAA), self-healing pipelines, golden-path templates, a partner marketplace, SSO/SCIM, and multi-cluster federation. [Request a demo](https://apiloom.io/demo.html).
+
+## Related projects
+
+- [agentic-os](https://github.com/mindfulcto-labs/agentic-os): an ontology-driven agentic operating system, as a reference implementation
+- [agent-governance-kit](https://github.com/mindfulcto-labs/agent-governance-kit): audits agent run traces against their governance claims
+- [llm-gateway](https://github.com/mindfulcto-labs/llm-gateway): multi-provider LLM gateway with routing, fallback chains and budgets
+- [confighub](https://github.com/mindfulcto-labs/confighub): schema-validated configuration service with audit history
+- [engineering-standards](https://github.com/mindfulcto-labs/engineering-standards): engineering standards and checklists
 
 ## License
 

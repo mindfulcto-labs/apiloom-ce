@@ -554,7 +554,7 @@ const file_api_plugin_v1_plugin_proto_rawDesc = "" +
 	"\n" +
 	"OnResponse\x12$.flexgateway.plugin.v1.PluginRequest\x1a%.flexgateway.plugin.v1.PluginResponse\x12[\n" +
 	"\bDescribe\x12&.flexgateway.plugin.v1.DescribeRequest\x1a'.flexgateway.plugin.v1.DescribeResponse\x12d\n" +
-	"\vHealthCheck\x12).flexgateway.plugin.v1.HealthCheckRequest\x1a*.flexgateway.plugin.v1.HealthCheckResponseB;Z9github.com/mindfulcto-labs/apiloom-ce/api/plugin/v1;pluginv1b\x06proto3"
+	"\vHealthCheck\x12).flexgateway.plugin.v1.HealthCheckRequest\x1a*.flexgateway.plugin.v1.HealthCheckResponseB>Z<github.com/mindfulcto-labs/apiloom-ce/api/plugin/v1;pluginv1b\x06proto3"
 
 var (
 	file_api_plugin_v1_plugin_proto_rawDescOnce sync.Once

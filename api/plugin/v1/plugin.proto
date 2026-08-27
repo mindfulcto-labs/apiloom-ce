@@ -1,6 +1,6 @@
 syntax = "proto3";
 package flexgateway.plugin.v1;
-option go_package = "github.com/flexgateway/flexgateway/api/plugin/v1;pluginv1";
+option go_package = "github.com/mindfulcto-labs/apiloom-ce/api/plugin/v1;pluginv1";
 
 service PluginService {
   rpc OnRequest(PluginRequest) returns (PluginResponse);

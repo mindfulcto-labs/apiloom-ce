@@ -83,7 +83,7 @@ func runConfigHistory(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return fmt.Errorf("fetching config history: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if err := client.checkResponse(resp); err != nil {
 		return err
@@ -134,7 +134,7 @@ func runConfigRollback(cmd *cobra.Command, _ []string) error {
 	if err != nil {
 		return fmt.Errorf("rolling back config: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if err := client.checkResponse(resp); err != nil {
 		return err

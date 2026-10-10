@@ -27,11 +27,11 @@ func GenerateReport(results []BenchmarkResult) string {
 
 	// Machine spec header.
 	sb.WriteString("## Test Environment\n\n")
-	sb.WriteString(fmt.Sprintf("- **CPUs:** %d\n", runtime.NumCPU()))
-	sb.WriteString(fmt.Sprintf("- **GOMAXPROCS:** %d\n", runtime.GOMAXPROCS(0)))
-	sb.WriteString(fmt.Sprintf("- **Go version:** %s\n", runtime.Version()))
-	sb.WriteString(fmt.Sprintf("- **OS/Arch:** %s/%s\n", runtime.GOOS, runtime.GOARCH))
-	sb.WriteString(fmt.Sprintf("- **Date:** %s\n", time.Now().UTC().Format("2006-01-02")))
+	fmt.Fprintf(&sb, "- **CPUs:** %d\n", runtime.NumCPU())
+	fmt.Fprintf(&sb, "- **GOMAXPROCS:** %d\n", runtime.GOMAXPROCS(0))
+	fmt.Fprintf(&sb, "- **Go version:** %s\n", runtime.Version())
+	fmt.Fprintf(&sb, "- **OS/Arch:** %s/%s\n", runtime.GOOS, runtime.GOARCH)
+	fmt.Fprintf(&sb, "- **Date:** %s\n", time.Now().UTC().Format("2006-01-02"))
 	sb.WriteString("\n")
 
 	// Results table.
@@ -40,14 +40,14 @@ func GenerateReport(results []BenchmarkResult) string {
 	sb.WriteString("|----------|-----|----------|----------|-----------|------|\n")
 
 	for _, r := range results {
-		sb.WriteString(fmt.Sprintf("| %s | %s | %.0f | %.0f | %d | %d |\n",
+		fmt.Fprintf(&sb, "| %s | %s | %.0f | %.0f | %d | %d |\n",
 			r.Scenario,
 			formatRPS(r.RPS),
 			r.P50Us,
 			r.P99Us,
 			r.AllocsPerOp,
 			r.BytesPerOp,
-		))
+		)
 	}
 
 	sb.WriteString("\n")

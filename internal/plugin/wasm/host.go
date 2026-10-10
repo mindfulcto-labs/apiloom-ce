@@ -65,7 +65,7 @@ func FetchURL(ctx context.Context, caps CapabilitySet, client *http.Client, rawU
 	if err != nil {
 		return nil, 0, fmt.Errorf("wasm: fetching %q: %w", rawURL, err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	// Drain and collect the response body (limit to 1MB).
 	body, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))

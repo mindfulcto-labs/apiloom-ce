@@ -287,7 +287,7 @@ func TestCallNonStreaming(t *testing.T) {
 		assert.Contains(t, r.URL.RawQuery, "key=test-api-key")
 		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(respBody))
+		_, _ = w.Write([]byte(respBody))
 	}))
 	defer srv.Close()
 
@@ -300,7 +300,7 @@ func TestCallNonStreaming(t *testing.T) {
 	}
 	result, err := a.Call(context.Background(), payload, false)
 	require.NoError(t, err)
-	defer result.Body.Close()
+	defer func() { _ = result.Body.Close() }()
 
 	assert.Equal(t, http.StatusOK, result.StatusCode)
 	assert.False(t, result.Streaming)
@@ -317,7 +317,7 @@ func TestCallStreaming(t *testing.T) {
 		assert.Contains(t, r.URL.RawQuery, "alt=sse")
 		w.Header().Set("Content-Type", "text/event-stream")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("data: {\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"Hi\"}]}}]}\n\n"))
+		_, _ = w.Write([]byte("data: {\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"Hi\"}]}}]}\n\n"))
 	}))
 	defer srv.Close()
 
@@ -330,7 +330,7 @@ func TestCallStreaming(t *testing.T) {
 	}
 	result, err := a.Call(context.Background(), payload, true)
 	require.NoError(t, err)
-	defer result.Body.Close()
+	defer func() { _ = result.Body.Close() }()
 
 	assert.True(t, result.Streaming)
 }
@@ -342,7 +342,7 @@ func TestCallBearerAuth(t *testing.T) {
 		assert.Equal(t, "Bearer test-bearer-token", r.Header.Get("Authorization"))
 		assert.NotContains(t, r.URL.RawQuery, "key=")
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"candidates":[]}`))
+		_, _ = w.Write([]byte(`{"candidates":[]}`))
 	}))
 	defer srv.Close()
 
@@ -355,7 +355,7 @@ func TestCallBearerAuth(t *testing.T) {
 	}
 	result, err := a.Call(context.Background(), payload, false)
 	require.NoError(t, err)
-	defer result.Body.Close()
+	defer func() { _ = result.Body.Close() }()
 
 	assert.Equal(t, http.StatusOK, result.StatusCode)
 }
@@ -365,7 +365,7 @@ func TestCallErrorSanitized(t *testing.T) {
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTooManyRequests)
-		w.Write([]byte(`{"error":{"message":"Quota exceeded","status":"RESOURCE_EXHAUSTED","code":429,"sensitive":"secret"}}`))
+		_, _ = w.Write([]byte(`{"error":{"message":"Quota exceeded","status":"RESOURCE_EXHAUSTED","code":429,"sensitive":"secret"}}`))
 	}))
 	defer srv.Close()
 
@@ -415,7 +415,7 @@ func TestAPIKeyNotInErrors(t *testing.T) {
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusForbidden)
-		w.Write([]byte(`{"error":{"message":"API key invalid"}}`))
+		_, _ = w.Write([]byte(`{"error":{"message":"API key invalid"}}`))
 	}))
 	defer srv.Close()
 

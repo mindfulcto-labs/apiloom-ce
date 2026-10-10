@@ -90,7 +90,7 @@ func TestGRPCBlockName(t *testing.T) {
 		Timeout: 5 * time.Second,
 	})
 	require.NoError(t, err)
-	t.Cleanup(func() { block.Close() })
+	t.Cleanup(func() { _ = block.Close() })
 
 	require.Equal(t, "test-plugin", block.Name())
 }
@@ -200,7 +200,7 @@ func TestGRPCBlockMiddleware(t *testing.T) {
 				Timeout: 5 * time.Second,
 			})
 			require.NoError(t, err)
-			t.Cleanup(func() { block.Close() })
+			t.Cleanup(func() { _ = block.Close() })
 
 			mw := block.Middleware()
 
@@ -280,7 +280,7 @@ func TestGRPCBlockBodyPassthrough(t *testing.T) {
 				BodyPassthrough: tt.bodyPassthrough,
 			})
 			require.NoError(t, err)
-			t.Cleanup(func() { block.Close() })
+			t.Cleanup(func() { _ = block.Close() })
 
 			mw := block.Middleware()
 			backendProxy := func(_ context.Context, _ *proxy.Request) (*proxy.Response, error) {
@@ -329,7 +329,7 @@ func TestGRPCBlockTimeout(t *testing.T) {
 		Timeout: 50 * time.Millisecond,
 	})
 	require.NoError(t, err)
-	t.Cleanup(func() { block.Close() })
+	t.Cleanup(func() { _ = block.Close() })
 
 	mw := block.Middleware()
 	backendProxy := func(_ context.Context, _ *proxy.Request) (*proxy.Response, error) {
@@ -367,7 +367,7 @@ func TestGRPCBlockFailOpen(t *testing.T) {
 		FailOpen: true,
 	})
 	require.NoError(t, err)
-	t.Cleanup(func() { block.Close() })
+	t.Cleanup(func() { _ = block.Close() })
 
 	// Now stop the server to simulate unreachable plugin
 	srv.GracefulStop()
@@ -412,7 +412,7 @@ func TestGRPCBlockDescriptor(t *testing.T) {
 		Timeout: 5 * time.Second,
 	})
 	require.NoError(t, err)
-	t.Cleanup(func() { block.Close() })
+	t.Cleanup(func() { _ = block.Close() })
 
 	require.Equal(t, "custom-auth", block.Name())
 	desc := block.Descriptor()
@@ -433,7 +433,7 @@ func TestNewGRPCBlockDialOptions(t *testing.T) {
 		Timeout: 5 * time.Second,
 	}, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	require.NoError(t, err)
-	t.Cleanup(func() { block.Close() })
+	t.Cleanup(func() { _ = block.Close() })
 
 	require.Equal(t, "test-plugin", block.Name())
 }

@@ -49,7 +49,7 @@ func WithOrgTx(ctx context.Context, pool *pgxpool.Pool, orgID uuid.UUID, fn func
 	if err != nil {
 		return fmt.Errorf("beginning org tx: %w", err)
 	}
-	defer tx.Rollback(ctx)
+	defer func() { _ = tx.Rollback(ctx) }()
 
 	if err := SetOrgContext(ctx, tx, orgID); err != nil {
 		return err

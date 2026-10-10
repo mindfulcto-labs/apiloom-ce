@@ -108,7 +108,7 @@ func (a *Adapter) Call(ctx context.Context, providerReq any, streaming bool) (*a
 	// Non-streaming: wrap body with limit reader.
 	limited := io.LimitReader(resp.Body, maxResponseBody)
 	respBody, err := io.ReadAll(limited)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	if err != nil {
 		return nil, fmt.Errorf("reading openai response: %w", err)
 	}
@@ -123,7 +123,7 @@ func (a *Adapter) Call(ctx context.Context, providerReq any, streaming bool) (*a
 // handleError reads the error body, extracts the message, and returns a sanitized ProblemError.
 // Raw provider body is never forwarded per security.md.
 func (a *Adapter) handleError(resp *http.Response) error {
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	limited := io.LimitReader(resp.Body, maxResponseBody)
 	body, _ := io.ReadAll(limited)

@@ -289,7 +289,7 @@ func (a *Adapter) Call(ctx context.Context, providerReq any, streaming bool) (*a
 
 	limited := io.LimitReader(resp.Body, maxResponseBody)
 	respBody, err := io.ReadAll(limited)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	if err != nil {
 		return nil, fmt.Errorf("reading anthropic response: %w", err)
 	}
@@ -303,7 +303,7 @@ func (a *Adapter) Call(ctx context.Context, providerReq any, streaming bool) (*a
 
 // handleError reads the error body, extracts the message, and returns a sanitized ProblemError.
 func (a *Adapter) handleError(resp *http.Response) error {
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	limited := io.LimitReader(resp.Body, maxResponseBody)
 	body, _ := io.ReadAll(limited)

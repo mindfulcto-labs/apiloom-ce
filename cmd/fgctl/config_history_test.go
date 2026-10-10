@@ -45,7 +45,7 @@ func TestConfigHistoryCmd_PrintsTable(t *testing.T) {
 			},
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	}))
 	defer srv.Close()
 
@@ -69,7 +69,7 @@ func TestConfigRollbackCmd_Success(t *testing.T) {
 		assert.Equal(t, http.MethodPost, r.Method)
 
 		var req map[string]int
-		json.NewDecoder(r.Body).Decode(&req)
+		_ = json.NewDecoder(r.Body).Decode(&req)
 		assert.Equal(t, 1, req["to_version"])
 
 		resp := configVersionFull{
@@ -78,7 +78,7 @@ func TestConfigRollbackCmd_Success(t *testing.T) {
 			Author:  "rollback:v1",
 		}
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(resp)
+		_ = json.NewEncoder(w).Encode(resp)
 	}))
 	defer srv.Close()
 

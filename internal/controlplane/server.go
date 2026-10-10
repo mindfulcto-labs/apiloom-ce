@@ -149,7 +149,7 @@ func (s *Server) handleHealthz(w http.ResponseWriter, r *http.Request) {
 	} else {
 		w.WriteHeader(http.StatusOK)
 	}
-	json.NewEncoder(w).Encode(resp) //nolint:errcheck
+	_ = json.NewEncoder(w).Encode(resp)
 }
 
 // OrgContextMiddleware extracts the organization ID from the X-Organization-ID header

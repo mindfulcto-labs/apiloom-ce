@@ -23,12 +23,6 @@ const defaultGracePeriod = 1 * time.Hour
 // lastUsedChSize is the buffered channel capacity for async last-used updates.
 const lastUsedChSize = 256
 
-// authResult bundles the resolved consumer and API key for cache storage.
-type authResult struct {
-	consumer *domain.Consumer
-	key      *domain.APIKey
-}
-
 // APIKeyBlock implements the Block interface for API key authentication.
 type APIKeyBlock struct {
 	config     APIKeyConfig

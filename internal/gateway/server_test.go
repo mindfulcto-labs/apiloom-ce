@@ -114,7 +114,7 @@ func TestBuildServiceConfig(t *testing.T) {
 		t.Parallel()
 		upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
-			fmt.Fprint(w, `{"status":"ok"}`)
+			_, _ = fmt.Fprint(w, `{"status":"ok"}`)
 		}))
 		defer upstream.Close()
 
@@ -203,7 +203,7 @@ func TestServerPathRouting(t *testing.T) {
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprintf(w, `{"path":"%s"}`, r.URL.Path)
+		_, _ = fmt.Fprintf(w, `{"path":"%s"}`, r.URL.Path)
 	}))
 	defer upstream.Close()
 
@@ -224,7 +224,7 @@ func TestServerPathRouting(t *testing.T) {
 
 	resp, err := http.Get(srv.URL + "/api/v1/users")
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 }
@@ -234,7 +234,7 @@ func TestServerWildcardRouting(t *testing.T) {
 
 	upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprintf(w, `{"matched":"%s"}`, r.URL.Path)
+		_, _ = fmt.Fprintf(w, `{"matched":"%s"}`, r.URL.Path)
 	}))
 	defer upstream.Close()
 
@@ -266,7 +266,7 @@ func TestServerWildcardRouting(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			resp, err := http.Get(srv.URL + tt.path)
 			require.NoError(t, err)
-			defer resp.Body.Close()
+			defer func() { _ = resp.Body.Close() }()
 			assert.Equal(t, http.StatusOK, resp.StatusCode)
 		})
 	}
@@ -277,13 +277,13 @@ func TestServerMethodRouting(t *testing.T) {
 
 	getUpstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"method":"GET"}`)
+		_, _ = fmt.Fprint(w, `{"method":"GET"}`)
 	}))
 	defer getUpstream.Close()
 
 	postUpstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"method":"POST"}`)
+		_, _ = fmt.Fprint(w, `{"method":"POST"}`)
 	}))
 	defer postUpstream.Close()
 
@@ -311,7 +311,7 @@ func TestServerMethodRouting(t *testing.T) {
 	resp, err := http.Get(srv.URL + "/api/v1/resource")
 	require.NoError(t, err)
 	body, _ := io.ReadAll(resp.Body)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.Contains(t, string(body), "GET")
 
@@ -319,7 +319,7 @@ func TestServerMethodRouting(t *testing.T) {
 	resp2, err := http.Post(srv.URL+"/api/v1/resource", "application/json", nil)
 	require.NoError(t, err)
 	body2, _ := io.ReadAll(resp2.Body)
-	resp2.Body.Close()
+	_ = resp2.Body.Close()
 	assert.Equal(t, http.StatusOK, resp2.StatusCode)
 	assert.Contains(t, string(body2), "POST")
 }
@@ -333,14 +333,14 @@ func TestServerRoundRobin(t *testing.T) {
 	upstream1 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		counter1.Add(1)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"backend":"1"}`)
+		_, _ = fmt.Fprint(w, `{"backend":"1"}`)
 	}))
 	defer upstream1.Close()
 
 	upstream2 := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		counter2.Add(1)
 		w.Header().Set("Content-Type", "application/json")
-		fmt.Fprint(w, `{"backend":"2"}`)
+		_, _ = fmt.Fprint(w, `{"backend":"2"}`)
 	}))
 	defer upstream2.Close()
 
@@ -363,8 +363,8 @@ func TestServerRoundRobin(t *testing.T) {
 	for i := 0; i < 10; i++ {
 		resp, err := http.Get(srv.URL + "/api/v1/balanced")
 		require.NoError(t, err)
-		io.Copy(io.Discard, resp.Body)
-		resp.Body.Close()
+		_, _ = io.Copy(io.Discard, resp.Body)
+		_ = resp.Body.Close()
 	}
 
 	c1 := counter1.Load()
@@ -390,7 +390,7 @@ func TestServerEmptyConfig(t *testing.T) {
 
 	resp, err := http.Get(srv.URL + "/nonexistent")
 	require.NoError(t, err)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	// 404 for unmatched routes
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 }
@@ -414,7 +414,7 @@ func TestServerProblemErrorHandler(t *testing.T) {
 
 		upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
-			fmt.Fprint(w, `{"ok":true}`)
+			_, _ = fmt.Fprint(w, `{"ok":true}`)
 		}))
 		defer upstream.Close()
 
@@ -444,7 +444,7 @@ func TestServerProblemErrorHandler(t *testing.T) {
 
 		resp, err := http.Get(srv.URL + "/api/v1/secured")
 		require.NoError(t, err)
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 
 		assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 		assert.Equal(t, "application/problem+json", resp.Header.Get("Content-Type"))
@@ -465,7 +465,7 @@ func TestServerProblemErrorHandler(t *testing.T) {
 
 		upstream := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
-			fmt.Fprint(w, `{"ok":true}`)
+			_, _ = fmt.Fprint(w, `{"ok":true}`)
 		}))
 		defer upstream.Close()
 
@@ -494,7 +494,7 @@ func TestServerProblemErrorHandler(t *testing.T) {
 
 		resp, err := http.Get(srv.URL + "/api/v1/failing")
 		require.NoError(t, err)
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 
 		assert.Equal(t, http.StatusBadGateway, resp.StatusCode)
 	})

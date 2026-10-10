@@ -19,10 +19,8 @@ import (
 
 // localCounter holds per-key atomic counters for the distributed store.
 // pending accumulates increments since the last flush to Postgres.
-// lastKnownTotal holds the most recent total from a Postgres sliding window query.
 type localCounter struct {
-	pending        atomic.Int64
-	lastKnownTotal atomic.Int64
+	pending atomic.Int64
 }
 
 // counterShard holds a subset of localCounters protected by a read-write mutex.
@@ -202,7 +200,7 @@ func (s *DistributedStore) flushAll(ctx context.Context) {
 	defer cancel()
 
 	br := s.pool.SendBatch(queryCtx, batch)
-	defer br.Close()
+	defer func() { _ = br.Close() }()
 
 	// Check each result for errors.
 	var batchErr error

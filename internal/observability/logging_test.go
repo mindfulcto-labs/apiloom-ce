@@ -73,7 +73,7 @@ func TestLoggingMiddleware(t *testing.T) {
 
 			inner := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(tt.statusCode)
-				w.Write([]byte("ok"))
+				_, _ = w.Write([]byte("ok"))
 			})
 
 			handler := LoggingMiddleware(logger, cfg)(inner)

@@ -308,7 +308,7 @@ func buildEndpointHandler(ep *luraconfig.EndpointConfig, chainMW proxy.Middlewar
 		if err != nil {
 			return nil, fmt.Errorf("calling upstream %s: %w", host, err)
 		}
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 
 		body, err := readResponseBody(resp)
 		if err != nil {
@@ -360,7 +360,7 @@ func buildEndpointHandler(ep *luraconfig.EndpointConfig, chainMW proxy.Middlewar
 					return
 				}
 				w.WriteHeader(pe.StatusCode())
-				w.Write(body)
+				_, _ = w.Write(body)
 				return
 			}
 			http.Error(w, err.Error(), http.StatusBadGateway)
@@ -395,7 +395,7 @@ func buildEndpointHandler(ep *luraconfig.EndpointConfig, chainMW proxy.Middlewar
 			w.Header().Set("Content-Type", "application/json")
 		}
 		w.WriteHeader(statusCode)
-		w.Write(jsonData)
+		_, _ = w.Write(jsonData)
 	}
 }
 

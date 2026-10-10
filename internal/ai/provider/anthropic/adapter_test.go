@@ -300,7 +300,7 @@ func TestCall(t *testing.T) {
 			assert.Equal(t, "2023-06-01", r.Header.Get("anthropic-version"))
 			assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(respBody))
+			_, _ = w.Write([]byte(respBody))
 		}))
 		defer srv.Close()
 
@@ -309,7 +309,7 @@ func TestCall(t *testing.T) {
 		reqBody, _ := json.Marshal(map[string]any{"model": "claude-3-sonnet"})
 		result, err := a.Call(context.Background(), reqBody, false)
 		require.NoError(t, err)
-		defer result.Body.Close()
+		defer func() { _ = result.Body.Close() }()
 
 		assert.Equal(t, http.StatusOK, result.StatusCode)
 		assert.False(t, result.Streaming)
@@ -323,7 +323,7 @@ func TestCall(t *testing.T) {
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/event-stream")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("event: content_block_delta\ndata: {\"delta\":{\"text\":\"Hi\"}}\n\n"))
+			_, _ = w.Write([]byte("event: content_block_delta\ndata: {\"delta\":{\"text\":\"Hi\"}}\n\n"))
 		}))
 		defer srv.Close()
 
@@ -332,7 +332,7 @@ func TestCall(t *testing.T) {
 		reqBody, _ := json.Marshal(map[string]any{"model": "claude-3-sonnet"})
 		result, err := a.Call(context.Background(), reqBody, true)
 		require.NoError(t, err)
-		defer result.Body.Close()
+		defer func() { _ = result.Body.Close() }()
 
 		assert.True(t, result.Streaming)
 	})
@@ -341,7 +341,7 @@ func TestCall(t *testing.T) {
 		t.Parallel()
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusTooManyRequests)
-			w.Write([]byte(`{"type":"error","error":{"type":"rate_limit_error","message":"Rate limited"}}`))
+			_, _ = w.Write([]byte(`{"type":"error","error":{"type":"rate_limit_error","message":"Rate limited"}}`))
 		}))
 		defer srv.Close()
 
@@ -387,7 +387,7 @@ func TestAPIKeyNotInErrors(t *testing.T) {
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"type":"error","error":{"message":"Invalid API key"}}`))
+		_, _ = w.Write([]byte(`{"type":"error","error":{"message":"Invalid API key"}}`))
 	}))
 	defer srv.Close()
 

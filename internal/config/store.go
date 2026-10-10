@@ -40,7 +40,7 @@ func RunMigrations(ctx context.Context, dsn string) error {
 		return fmt.Errorf("creating migrator: %w", err)
 	}
 	defer func() {
-		m.Close()
+		_, _ = m.Close()
 	}()
 
 	if err := m.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {

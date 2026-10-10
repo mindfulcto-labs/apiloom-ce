@@ -37,12 +37,6 @@ func (s *stubConfigLoader) setConfig(cfg *domain.GatewayConfig) {
 	s.config = cfg
 }
 
-func (s *stubConfigLoader) setErr(err error) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-	s.err = err
-}
-
 func newTestConfig(version int, routeNames ...string) *domain.GatewayConfig {
 	routes := make([]domain.RouteConfig, len(routeNames))
 	for i, name := range routeNames {

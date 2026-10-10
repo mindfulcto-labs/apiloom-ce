@@ -206,7 +206,7 @@ func TestStreamSSE(t *testing.T) {
 		go func() {
 			_, _ = pw.Write([]byte("data: {\"id\":\"1\",\"choices\":[{\"index\":0,\"delta\":{\"content\":\"Hi\"}}]}\n\n"))
 			cancel()
-			pw.Close()
+			_ = pw.Close()
 		}()
 
 		err := StreamSSE(ctx, w, pr, "openai", accum)

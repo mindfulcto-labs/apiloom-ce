@@ -21,7 +21,7 @@ func BenchmarkProxyHandler(b *testing.B) {
 	backend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, `{"status":"ok","data":{"id":1,"name":"test"}}`)
+		_, _ = fmt.Fprint(w, `{"status":"ok","data":{"id":1,"name":"test"}}`)
 	}))
 	defer backend.Close()
 

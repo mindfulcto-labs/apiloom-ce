@@ -18,7 +18,7 @@ func WriteProblem(w http.ResponseWriter, status int, errType, detail string) {
 	}
 	w.Header().Set("Content-Type", "application/problem+json")
 	w.WriteHeader(status)
-	w.Write(b) //nolint:errcheck
+	_, _ = w.Write(b)
 }
 
 // ProblemFromError maps a domain sentinel error to a ProblemError with the appropriate
@@ -53,5 +53,5 @@ func WriteJSON(w http.ResponseWriter, status int, v any) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	w.Write(b) //nolint:errcheck
+	_, _ = w.Write(b)
 }

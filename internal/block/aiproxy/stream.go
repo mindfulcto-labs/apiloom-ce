@@ -285,6 +285,6 @@ func handleGeminiLine(w http.ResponseWriter, f http.Flusher, line string, accum 
 
 // writeLine writes a line to the response writer and flushes.
 func writeLine(w http.ResponseWriter, f http.Flusher, line string) {
-	fmt.Fprintf(w, "%s\n", line)
+	_, _ = fmt.Fprintf(w, "%s\n", line)
 	f.Flush()
 }

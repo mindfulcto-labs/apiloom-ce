@@ -120,7 +120,7 @@ func TestAPIVersionHandler_CreateVersion(t *testing.T) {
 	}{
 		{
 			name: "valid create returns 201",
-			body: fmt.Sprintf(`{"version_tag":"v1.0.0","config":{"timeout":30},"changelog":"initial","created_by":"user1"}`),
+			body: `{"version_tag":"v1.0.0","config":{"timeout":30},"changelog":"initial","created_by":"user1"}`,
 			store: &mockAPIVersionStore{
 				createFn: func(_ context.Context, _ *domain.APIVersion) error {
 					return nil

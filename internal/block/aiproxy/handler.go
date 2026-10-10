@@ -189,7 +189,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		h.writeProblem(w, err)
 		return
 	}
-	defer result.Body.Close()
+	defer func() { _ = result.Body.Close() }()
 
 	modelHeader := modelUsed.Provider + "/" + modelUsed.ModelName
 

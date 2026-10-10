@@ -79,7 +79,7 @@ func newTestKeys(t *testing.T) *testKeys {
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
-		w.Write(jwksBytes)
+		_, _ = w.Write(jwksBytes)
 	}))
 	t.Cleanup(srv.Close)
 
@@ -611,7 +611,7 @@ func TestJWTBlock_JWKSCache(t *testing.T) {
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			fetchCount++
 			w.Header().Set("Content-Type", "application/json")
-			w.Write(jwksBytes)
+			_, _ = w.Write(jwksBytes)
 		}))
 		t.Cleanup(srv.Close)
 
@@ -649,9 +649,9 @@ func TestJWTBlock_JWKSCache(t *testing.T) {
 			reqCount++
 			w.Header().Set("Content-Type", "application/json")
 			if reqCount <= 1 {
-				w.Write(jwks1) // empty keyset first
+				_, _ = w.Write(jwks1) // empty keyset first
 			} else {
-				w.Write(jwks2) // key appears on refresh
+				_, _ = w.Write(jwks2) // key appears on refresh
 			}
 		}))
 		t.Cleanup(srv.Close)

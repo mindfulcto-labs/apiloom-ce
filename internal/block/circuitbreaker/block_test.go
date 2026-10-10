@@ -15,21 +15,6 @@ import (
 	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 )
 
-// mockProxy returns a proxy that fails failCount times then succeeds.
-func mockProxy(failCount *int, failErr error) proxy.Proxy {
-	return func(_ context.Context, req *proxy.Request) (*proxy.Response, error) {
-		if *failCount > 0 {
-			*failCount--
-			return nil, failErr
-		}
-		return &proxy.Response{
-			Data:       map[string]interface{}{"status": "ok"},
-			IsComplete: true,
-			Metadata:   proxy.Metadata{StatusCode: http.StatusOK},
-		}, nil
-	}
-}
-
 // mockProxyWithStatus returns a proxy that always returns the given status code.
 func mockProxyWithStatus(statusCode int) proxy.Proxy {
 	return func(_ context.Context, req *proxy.Request) (*proxy.Response, error) {

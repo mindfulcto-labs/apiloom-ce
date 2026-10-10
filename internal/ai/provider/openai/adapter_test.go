@@ -190,7 +190,7 @@ func TestCall(t *testing.T) {
 			assert.Equal(t, "Bearer sk-test-key", r.Header.Get("Authorization"))
 			assert.Equal(t, "application/json", r.Header.Get("Content-Type"))
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(respBody))
+			_, _ = w.Write([]byte(respBody))
 		}))
 		defer srv.Close()
 
@@ -199,7 +199,7 @@ func TestCall(t *testing.T) {
 		reqBody, _ := json.Marshal(map[string]any{"model": "gpt-4"})
 		result, err := a.Call(context.Background(), reqBody, false)
 		require.NoError(t, err)
-		defer result.Body.Close()
+		defer func() { _ = result.Body.Close() }()
 
 		assert.Equal(t, http.StatusOK, result.StatusCode)
 		assert.False(t, result.Streaming)
@@ -213,8 +213,8 @@ func TestCall(t *testing.T) {
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "text/event-stream")
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("data: {\"choices\":[{\"delta\":{\"content\":\"Hi\"}}]}\n\n"))
-			w.Write([]byte("data: [DONE]\n\n"))
+			_, _ = w.Write([]byte("data: {\"choices\":[{\"delta\":{\"content\":\"Hi\"}}]}\n\n"))
+			_, _ = w.Write([]byte("data: [DONE]\n\n"))
 		}))
 		defer srv.Close()
 
@@ -223,7 +223,7 @@ func TestCall(t *testing.T) {
 		reqBody, _ := json.Marshal(map[string]any{"model": "gpt-4", "stream": true})
 		result, err := a.Call(context.Background(), reqBody, true)
 		require.NoError(t, err)
-		defer result.Body.Close()
+		defer func() { _ = result.Body.Close() }()
 
 		assert.True(t, result.Streaming)
 	})
@@ -232,7 +232,7 @@ func TestCall(t *testing.T) {
 		t.Parallel()
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusTooManyRequests)
-			w.Write([]byte(`{"error":{"message":"Rate limit exceeded","type":"rate_limit_error"}}`))
+			_, _ = w.Write([]byte(`{"error":{"message":"Rate limit exceeded","type":"rate_limit_error"}}`))
 		}))
 		defer srv.Close()
 
@@ -251,7 +251,7 @@ func TestCall(t *testing.T) {
 		t.Parallel()
 		srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(`{"error":{"message":"Internal server error","type":"server_error"},"sensitive_data":"secret123"}`))
+			_, _ = w.Write([]byte(`{"error":{"message":"Internal server error","type":"server_error"},"sensitive_data":"secret123"}`))
 		}))
 		defer srv.Close()
 
@@ -296,7 +296,7 @@ func TestAPIKeyNotInErrors(t *testing.T) {
 
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(`{"error":{"message":"Invalid API key"}}`))
+		_, _ = w.Write([]byte(`{"error":{"message":"Invalid API key"}}`))
 	}))
 	defer srv.Close()
 

@@ -112,7 +112,7 @@ func (w *Watcher) listenLoop(ctx context.Context) error {
 		// Use background context for close since parent ctx may be cancelled.
 		closeCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		conn.Close(closeCtx)
+		_ = conn.Close(closeCtx)
 	}()
 
 	_, err = conn.Exec(ctx, "LISTEN "+listenChannel)

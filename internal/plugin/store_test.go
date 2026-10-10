@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
@@ -17,10 +18,23 @@ import (
 	"github.com/mindfulcto-labs/apiloom-ce/internal/testutil"
 )
 
+// newTestOrgContext creates a fresh organisation and returns a context scoped
+// to it. The default organisation holds demo seed data from the migrations,
+// so tests that count or name plugins need their own organisation.
+func newTestOrgContext(t *testing.T, pool *pgxpool.Pool) context.Context {
+	t.Helper()
+	orgID := uuid.New()
+	_, err := pool.Exec(context.Background(),
+		"INSERT INTO organizations (id, name, slug, billing_email) VALUES ($1, $2, $3, $4)",
+		orgID, "test-org", "test-org-"+orgID.String()[:8], "test@example.com")
+	require.NoError(t, err)
+	return config.ContextWithOrg(context.Background(), orgID)
+}
+
 func TestPostgresStore_Create(t *testing.T) {
 	pool, _ := testutil.SetupTestDB(t, config.Migrations, "migrations")
 	store := NewPostgresStore(pool)
-	ctx := config.ContextWithOrg(context.Background(), uuid.MustParse("00000000-0000-0000-0000-000000000001"))
+	ctx := newTestOrgContext(t, pool)
 
 	tests := []struct {
 		name    string
@@ -84,7 +98,7 @@ func TestPostgresStore_Create(t *testing.T) {
 func TestPostgresStore_Get(t *testing.T) {
 	pool, _ := testutil.SetupTestDB(t, config.Migrations, "migrations")
 	store := NewPostgresStore(pool)
-	ctx := config.ContextWithOrg(context.Background(), uuid.MustParse("00000000-0000-0000-0000-000000000001"))
+	ctx := newTestOrgContext(t, pool)
 
 	created, err := store.Create(ctx, &PluginRecord{
 		Name:       "test-get",
@@ -113,7 +127,7 @@ func TestPostgresStore_Get(t *testing.T) {
 func TestPostgresStore_List(t *testing.T) {
 	pool, _ := testutil.SetupTestDB(t, config.Migrations, "migrations")
 	store := NewPostgresStore(pool)
-	ctx := config.ContextWithOrg(context.Background(), uuid.MustParse("00000000-0000-0000-0000-000000000001"))
+	ctx := newTestOrgContext(t, pool)
 
 	// Create a few plugins with slight delays for ordering.
 	for i := 0; i < 3; i++ {
@@ -174,7 +188,7 @@ func TestPostgresStore_List(t *testing.T) {
 func TestPostgresStore_UpdateConfig(t *testing.T) {
 	pool, _ := testutil.SetupTestDB(t, config.Migrations, "migrations")
 	store := NewPostgresStore(pool)
-	ctx := config.ContextWithOrg(context.Background(), uuid.MustParse("00000000-0000-0000-0000-000000000001"))
+	ctx := newTestOrgContext(t, pool)
 
 	created, err := store.Create(ctx, &PluginRecord{
 		Name:       "config-update",
@@ -193,7 +207,7 @@ func TestPostgresStore_UpdateConfig(t *testing.T) {
 func TestPostgresStore_UpdateEnabled(t *testing.T) {
 	pool, _ := testutil.SetupTestDB(t, config.Migrations, "migrations")
 	store := NewPostgresStore(pool)
-	ctx := config.ContextWithOrg(context.Background(), uuid.MustParse("00000000-0000-0000-0000-000000000001"))
+	ctx := newTestOrgContext(t, pool)
 
 	created, err := store.Create(ctx, &PluginRecord{
 		Name:       "enable-test",
@@ -216,7 +230,7 @@ func TestPostgresStore_UpdateEnabled(t *testing.T) {
 func TestPostgresStore_UpdateOrdering(t *testing.T) {
 	pool, _ := testutil.SetupTestDB(t, config.Migrations, "migrations")
 	store := NewPostgresStore(pool)
-	ctx := config.ContextWithOrg(context.Background(), uuid.MustParse("00000000-0000-0000-0000-000000000001"))
+	ctx := newTestOrgContext(t, pool)
 
 	created, err := store.Create(ctx, &PluginRecord{
 		Name:       "ordering-test",
@@ -235,7 +249,7 @@ func TestPostgresStore_UpdateOrdering(t *testing.T) {
 func TestPostgresStore_Delete(t *testing.T) {
 	pool, _ := testutil.SetupTestDB(t, config.Migrations, "migrations")
 	store := NewPostgresStore(pool)
-	ctx := config.ContextWithOrg(context.Background(), uuid.MustParse("00000000-0000-0000-0000-000000000001"))
+	ctx := newTestOrgContext(t, pool)
 
 	created, err := store.Create(ctx, &PluginRecord{
 		Name:       "delete-test",

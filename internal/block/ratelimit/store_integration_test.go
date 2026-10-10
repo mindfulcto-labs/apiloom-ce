@@ -76,8 +76,8 @@ func TestDistributedStore_Integration_SlidingWindow(t *testing.T) {
 
 	// Insert a count with an old window_start (outside the window).
 	_, err := pool.Exec(ctx,
-		`INSERT INTO rate_limit_counters (key, window_start, count)
-		 VALUES ($1, NOW() - INTERVAL '2 hours', $2)`,
+		`INSERT INTO rate_limit_counters (organization_id, key, window_start, count)
+		 VALUES ('00000000-0000-0000-0000-000000000001', $1, NOW() - INTERVAL '2 hours', $2)`,
 		"window-key", 999,
 	)
 	require.NoError(t, err)
@@ -103,8 +103,8 @@ func TestDistributedStore_Integration_Cleanup(t *testing.T) {
 
 	// Insert old rows that should be cleaned up.
 	_, err := pool.Exec(ctx,
-		`INSERT INTO rate_limit_counters (key, window_start, count)
-		 VALUES ($1, NOW() - INTERVAL '2 hours', $2)`,
+		`INSERT INTO rate_limit_counters (organization_id, key, window_start, count)
+		 VALUES ('00000000-0000-0000-0000-000000000001', $1, NOW() - INTERVAL '2 hours', $2)`,
 		"cleanup-key", 100,
 	)
 	require.NoError(t, err)

@@ -125,8 +125,8 @@ func (s *PostgresStore) Get(ctx context.Context, id uuid.UUID) (*PluginRecord, e
 	err = config.WithOrgTx(ctx, s.pool, orgID, func(tx pgx.Tx) error {
 		return tx.QueryRow(ctx,
 			`SELECT id, organization_id, name, plugin_type, config, target, grpc_address, ordering, is_enabled, created_at, updated_at
-			 FROM plugins WHERE id = $1`,
-			id,
+			 FROM plugins WHERE id = $1 AND organization_id = $2`,
+			id, orgID,
 		).Scan(&p.ID, &p.OrganizationID, &p.Name, &p.PluginType, &p.Config, &p.Target, &p.GRPCAddress, &p.Ordering, &p.IsEnabled, &p.CreatedAt, &p.UpdatedAt)
 	})
 	if err != nil {
@@ -158,9 +158,9 @@ func (s *PostgresStore) List(ctx context.Context, params ListPluginParams) (*Pag
 	var plugins []PluginRecord
 	err = config.WithOrgTx(ctx, s.pool, orgID, func(tx pgx.Tx) error {
 		// Build dynamic query with filters.
-		query := `SELECT id, organization_id, name, plugin_type, config, target, grpc_address, ordering, is_enabled, created_at, updated_at FROM plugins WHERE 1=1`
-		args := []any{}
-		argIdx := 1
+		query := `SELECT id, organization_id, name, plugin_type, config, target, grpc_address, ordering, is_enabled, created_at, updated_at FROM plugins WHERE organization_id = $1`
+		args := []any{orgID}
+		argIdx := 2
 
 		if params.IsEnabled != nil {
 			query += fmt.Sprintf(" AND is_enabled = $%d", argIdx)
@@ -231,9 +231,9 @@ func (s *PostgresStore) UpdateConfig(ctx context.Context, id uuid.UUID, cfg json
 	err = config.WithOrgTx(ctx, s.pool, orgID, func(tx pgx.Tx) error {
 		return tx.QueryRow(ctx,
 			`UPDATE plugins SET config = $1, updated_at = NOW()
-			 WHERE id = $2
+			 WHERE id = $2 AND organization_id = $3
 			 RETURNING id, organization_id, name, plugin_type, config, target, grpc_address, ordering, is_enabled, created_at, updated_at`,
-			cfg, id,
+			cfg, id, orgID,
 		).Scan(&p.ID, &p.OrganizationID, &p.Name, &p.PluginType, &p.Config, &p.Target, &p.GRPCAddress, &p.Ordering, &p.IsEnabled, &p.CreatedAt, &p.UpdatedAt)
 	})
 	if err != nil {
@@ -260,9 +260,9 @@ func (s *PostgresStore) UpdateEnabled(ctx context.Context, id uuid.UUID, enabled
 	err = config.WithOrgTx(ctx, s.pool, orgID, func(tx pgx.Tx) error {
 		return tx.QueryRow(ctx,
 			`UPDATE plugins SET is_enabled = $1, updated_at = NOW()
-			 WHERE id = $2
+			 WHERE id = $2 AND organization_id = $3
 			 RETURNING id, organization_id, name, plugin_type, config, target, grpc_address, ordering, is_enabled, created_at, updated_at`,
-			enabled, id,
+			enabled, id, orgID,
 		).Scan(&p.ID, &p.OrganizationID, &p.Name, &p.PluginType, &p.Config, &p.Target, &p.GRPCAddress, &p.Ordering, &p.IsEnabled, &p.CreatedAt, &p.UpdatedAt)
 	})
 	if err != nil {
@@ -289,9 +289,9 @@ func (s *PostgresStore) UpdateOrdering(ctx context.Context, id uuid.UUID, orderi
 	err = config.WithOrgTx(ctx, s.pool, orgID, func(tx pgx.Tx) error {
 		return tx.QueryRow(ctx,
 			`UPDATE plugins SET ordering = $1, updated_at = NOW()
-			 WHERE id = $2
+			 WHERE id = $2 AND organization_id = $3
 			 RETURNING id, organization_id, name, plugin_type, config, target, grpc_address, ordering, is_enabled, created_at, updated_at`,
-			ordering, id,
+			ordering, id, orgID,
 		).Scan(&p.ID, &p.OrganizationID, &p.Name, &p.PluginType, &p.Config, &p.Target, &p.GRPCAddress, &p.Ordering, &p.IsEnabled, &p.CreatedAt, &p.UpdatedAt)
 	})
 	if err != nil {
@@ -317,8 +317,8 @@ func (s *PostgresStore) Delete(ctx context.Context, id uuid.UUID) error {
 	var rowsAffected int64
 	err = config.WithOrgTx(ctx, s.pool, orgID, func(tx pgx.Tx) error {
 		tag, execErr := tx.Exec(ctx,
-			`DELETE FROM plugins WHERE id = $1`,
-			id,
+			`DELETE FROM plugins WHERE id = $1 AND organization_id = $2`,
+			id, orgID,
 		)
 		if execErr != nil {
 			return execErr

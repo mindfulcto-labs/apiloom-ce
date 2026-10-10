@@ -8,10 +8,10 @@ import (
 	"io"
 	"time"
 
+	"github.com/luraproject/lura/v2/proxy"
 	pluginv1 "github.com/mindfulcto-labs/apiloom-ce/api/plugin/v1"
 	"github.com/mindfulcto-labs/apiloom-ce/internal/domain"
 	"github.com/mindfulcto-labs/apiloom-ce/pkg/flex"
-	"github.com/luraproject/lura/v2/proxy"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 )
@@ -67,7 +67,7 @@ func NewGRPCBlock(ctx context.Context, cfg GRPCBlockConfig, extraOpts ...grpc.Di
 
 	desc, err := client.Describe(descCtx, &pluginv1.DescribeRequest{})
 	if err != nil {
-		conn.Close()
+		_ = conn.Close()
 		return nil, fmt.Errorf("describing plugin at %s: %w", cfg.Address, err)
 	}
 
@@ -222,7 +222,7 @@ func proxyRespToProto(req *proxy.Request, resp *proxy.Response) *pluginv1.Plugin
 		Method:     req.Method,
 		Path:       req.Path,
 		Headers:    headersToProto(resp.Metadata.Headers),
-		StatusCode: int32(resp.Metadata.StatusCode),
+		StatusCode: statusCodeToInt32(resp.Metadata.StatusCode),
 	}
 
 	if resp.Data != nil {
@@ -272,4 +272,13 @@ func headersToProto(headers map[string][]string) map[string]*pluginv1.StringList
 		out[k] = &pluginv1.StringList{Values: v}
 	}
 	return out
+}
+
+// statusCodeToInt32 converts an HTTP status code for the protobuf message.
+// Values outside the valid HTTP range become 0 rather than wrapping around.
+func statusCodeToInt32(code int) int32 {
+	if code < 0 || code > 999 {
+		return 0
+	}
+	return int32(code)
 }

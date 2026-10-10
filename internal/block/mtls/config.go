@@ -3,7 +3,6 @@ package mtls
 import (
 	"crypto/tls"
 	"fmt"
-	"log/slog"
 )
 
 // MTLSConfig defines mutual TLS configuration for upstream connections.
@@ -25,10 +24,6 @@ type MTLSConfig struct {
 	// CipherSuites is an optional list of cipher suites to use. If empty, Go's
 	// default cipher suite selection is used.
 	CipherSuites []uint16
-
-	// InsecureSkipVerify disables server certificate verification. MUST be false
-	// in production per security.md. Only for testing.
-	InsecureSkipVerify bool
 }
 
 // Validate checks that the mTLS configuration is valid.
@@ -41,9 +36,6 @@ func (c *MTLSConfig) Validate() error {
 	}
 	if c.MinTLSVersion != 0 && c.MinTLSVersion < tls.VersionTLS12 {
 		return fmt.Errorf("validating mTLS config: MinTLSVersion must be >= TLS 1.2 (0x%04x), got 0x%04x", tls.VersionTLS12, c.MinTLSVersion)
-	}
-	if c.InsecureSkipVerify {
-		slog.Warn("mTLS InsecureSkipVerify is true — this must NOT be used in production")
 	}
 	return nil
 }

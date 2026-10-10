@@ -114,7 +114,7 @@ func writePEM(t *testing.T, path, pemType string, data []byte) {
 	t.Helper()
 	f, err := os.Create(path)
 	require.NoError(t, err)
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 	require.NoError(t, pem.Encode(f, &pem.Block{Type: pemType, Bytes: data}))
 }
 
@@ -327,7 +327,7 @@ func TestMTLSBlock_PresentsCertToUpstream(t *testing.T) {
 			clientCertReceived = true
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(`{"status":"ok"}`))
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
 	}))
 
 	server.TLS = &tls.Config{
@@ -340,10 +340,9 @@ func TestMTLSBlock_PresentsCertToUpstream(t *testing.T) {
 	defer server.Close()
 
 	block, err := NewMTLSBlock(MTLSConfig{
-		CertFile:           tc.certFile,
-		KeyFile:            tc.keyFile,
-		CAFile:             tc.caFile,
-		InsecureSkipVerify: true, // Test server has self-signed cert
+		CertFile: tc.certFile,
+		KeyFile:  tc.keyFile,
+		CAFile:   tc.caFile,
 	})
 	require.NoError(t, err)
 
@@ -355,7 +354,7 @@ func TestMTLSBlock_PresentsCertToUpstream(t *testing.T) {
 
 	resp, err := client.Get(server.URL)
 	require.NoError(t, err)
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
 	assert.True(t, clientCertReceived, "server should have received client certificate")

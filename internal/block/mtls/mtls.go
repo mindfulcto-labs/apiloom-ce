@@ -53,7 +53,6 @@ func NewMTLSBlock(cfg MTLSConfig) (*MTLSBlock, error) {
 			}
 			return &cert, nil
 		},
-		InsecureSkipVerify: cfg.InsecureSkipVerify,
 	}
 
 	if len(cfg.CipherSuites) > 0 {

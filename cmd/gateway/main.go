@@ -75,8 +75,8 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("parsing database URL: %w", err)
 	}
-	poolCfg.MinConns = int32(parseIntOrDefault("FLEXGW_DB_MIN_CONNS", 5))
-	poolCfg.MaxConns = int32(parseIntOrDefault("FLEXGW_DB_MAX_CONNS", 20))
+	poolCfg.MinConns = parsePoolSizeOrDefault("FLEXGW_DB_MIN_CONNS", 5)
+	poolCfg.MaxConns = parsePoolSizeOrDefault("FLEXGW_DB_MAX_CONNS", 20)
 
 	pool, err := pgxpool.NewWithConfig(ctx, poolCfg)
 	if err != nil {
@@ -370,4 +370,18 @@ func parseIntOrDefault(key string, defaultVal int) int {
 		return defaultVal
 	}
 	return n
+}
+
+// maxPoolSize is an upper bound on database pool sizes read from the environment.
+const maxPoolSize = 1000
+
+// parsePoolSizeOrDefault reads a pool size from the environment. Values below 0
+// or above maxPoolSize are rejected and the default is used instead.
+func parsePoolSizeOrDefault(key string, defaultVal int32) int32 {
+	n := parseIntOrDefault(key, int(defaultVal))
+	if n < 0 || n > maxPoolSize {
+		slog.Warn("pool size out of range, using default", "key", key, "value", n, "default", defaultVal)
+		return defaultVal
+	}
+	return int32(n)
 }

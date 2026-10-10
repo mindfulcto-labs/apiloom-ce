@@ -12,6 +12,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	pluginv1 "github.com/mindfulcto-labs/apiloom-ce/api/plugin/v1"
@@ -57,7 +58,7 @@ type webhookPayload struct {
 
 // OnRequest fires a goroutine to POST the request details to the webhook URL
 // and immediately returns ACTION_CONTINUE.
-func (p *WebhookPlugin) OnRequest(_ context.Context, req *pluginv1.PluginRequest) (*pluginv1.PluginResponse, error) {
+func (p *WebhookPlugin) OnRequest(ctx context.Context, req *pluginv1.PluginRequest) (*pluginv1.PluginResponse, error) {
 	payload := webhookPayload{
 		Method:    req.GetMethod(),
 		Path:      req.GetPath(),
@@ -65,7 +66,9 @@ func (p *WebhookPlugin) OnRequest(_ context.Context, req *pluginv1.PluginRequest
 		Headers:   flattenHeaders(req.GetHeaders()),
 	}
 
-	go p.fireWebhook(payload) //nolint:errcheck // fire-and-forget by design
+	// Fire and forget: the webhook keeps the request's values (for tracing)
+	// but is not cancelled when the request finishes.
+	go p.fireWebhook(context.WithoutCancel(ctx), payload)
 
 	return &pluginv1.PluginResponse{
 		Action: pluginv1.Action_ACTION_CONTINUE,
@@ -96,14 +99,14 @@ func (p *WebhookPlugin) HealthCheck(_ context.Context, _ *pluginv1.HealthCheckRe
 }
 
 // fireWebhook sends the payload to the configured webhook URL.
-func (p *WebhookPlugin) fireWebhook(payload webhookPayload) {
+func (p *WebhookPlugin) fireWebhook(parent context.Context, payload webhookPayload) {
 	body, err := json.Marshal(payload)
 	if err != nil {
 		log.Printf("webhook: failed to marshal payload: %v", err)
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), p.config.Timeout)
+	ctx, cancel := context.WithTimeout(parent, p.config.Timeout)
 	defer cancel()
 
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, p.config.WebhookURL, bytes.NewReader(body))
@@ -118,7 +121,7 @@ func (p *WebhookPlugin) fireWebhook(payload webhookPayload) {
 		log.Printf("webhook: POST failed: %v", err)
 		return
 	}
-	resp.Body.Close()
+	_ = resp.Body.Close()
 }
 
 // flattenHeaders converts protobuf StringList headers to single-value map.
@@ -136,14 +139,18 @@ func flattenHeaders(headers map[string]*pluginv1.StringList) map[string]string {
 }
 
 func main() {
-	port := os.Getenv("PLUGIN_PORT")
-	if port == "" {
-		port = "50051"
+	port := 50051
+	if v := os.Getenv("PLUGIN_PORT"); v != "" {
+		n, err := strconv.Atoi(v)
+		if err != nil || n < 1 || n > 65535 {
+			log.Fatal("webhook plugin: PLUGIN_PORT must be a number from 1 to 65535")
+		}
+		port = n
 	}
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%s", port))
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", port))
 	if err != nil {
-		log.Fatalf("webhook plugin: failed to listen on port %s: %v", port, err)
+		log.Fatalf("webhook plugin: failed to listen on port %d: %v", port, err)
 	}
 
 	srv := grpc.NewServer()
@@ -153,7 +160,7 @@ func main() {
 	})
 	pluginv1.RegisterPluginServiceServer(srv, plugin)
 
-	log.Printf("webhook plugin: listening on :%s", port)
+	log.Printf("webhook plugin: listening on :%d", port)
 	if err := srv.Serve(lis); err != nil {
 		log.Fatalf("webhook plugin: server failed: %v", err)
 	}

@@ -25,7 +25,12 @@ func fuelToTimeout(fuelLimit uint64) time.Duration {
 	if fuelLimit == 0 {
 		return defaultExecutionTimeout
 	}
-	// 1 fuel unit ≈ 5ns (200M instructions/second, conservative)
+	// 1 fuel unit ≈ 5ns (200M instructions/second, conservative).
+	// Cap before converting so a very large limit cannot overflow int64.
+	const maxFuel = uint64(defaultExecutionTimeout / (5 * time.Nanosecond))
+	if fuelLimit >= maxFuel {
+		return defaultExecutionTimeout
+	}
 	d := time.Duration(fuelLimit) * 5 * time.Nanosecond
 	if d < 10*time.Millisecond {
 		return 10 * time.Millisecond
@@ -61,7 +66,7 @@ func NewSandbox(ctx context.Context, caps CapabilitySet, fuelLimit uint64) (*San
 	// compiled WASM modules often import. We instantiate it but do NOT mount
 	// any filesystem or pass environment variables.
 	if _, err := wasi_snapshot_preview1.Instantiate(ctx, rt); err != nil {
-		rt.Close(ctx) //nolint:errcheck
+		_ = rt.Close(ctx)
 		return nil, fmt.Errorf("instantiating wasi: %w", err)
 	}
 
@@ -114,7 +119,7 @@ func (s *Sandbox) Execute(ctx context.Context, wasmBytes []byte, _ []byte) ([]by
 		return nil, fmt.Errorf("wasm: executing module: %w", err)
 	}
 	if mod != nil {
-		mod.Close(execCtx) //nolint:errcheck
+		_ = mod.Close(execCtx)
 	}
 
 	return stdout.Bytes(), nil
@@ -127,4 +132,3 @@ func (s *Sandbox) Close(ctx context.Context) error {
 	}
 	return nil
 }
-

@@ -1,0 +1,14 @@
+# Secret scanning config. Uses the default gitleaks rules.
+# The paths below hold only fake values: unit-test keys, placeholder keys in
+# docs and READMEs, and demo seed data. Real secrets must never go in them.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Fake keys in tests, docs examples and demo seed data"
+paths = [
+  '''_test\.go$''',
+  '''^docs/.*\.md$''',
+  '''README\.md$''',
+  '''^internal/config/migrations/025_seed_demo_data\.up\.sql$''',
+]
